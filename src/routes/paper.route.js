@@ -15,7 +15,7 @@ import {
   getScholarUploads,
   getPublishedPapers,
   getAboutToBePublishedPapers,
-  addTag, downloadPaper, SearchPaperScholar,
+  addTag, downloadPaper, SearchPaperScholar, saveThesePapers,
 } from "../controllers/paper.controller.js";
 
 const paperRoute = Router();
@@ -24,12 +24,15 @@ paperRoute.use(jwt_auth);
 // Research paper routes
 paperRoute.route("/getResearchPaper").get(SearchPaperScholar);//tested
 // add a controller which willl take objects of schollar SEarch and save them to database
+paperRoute.route("/savePapers").post(saveThesePapers)//tested
 paperRoute.route("/addResearchPaperManual").post(upload_mul.single("paper"), uploadPaperManual); //tested
 
 // Fetching routes
-paperRoute.route("/getUserConferencePapers").get(getUserConferencePapers); //tested
+paperRoute.route("/getUserConferencePapers").get(getUserConferencePapers)//tested
+paperRoute.route("/getUserJournals").get(getUserJournals)//tested
+paperRoute.route("/getUserBookChapter").get(getUserBookChapter)//tested
 paperRoute.route("/paperById/:paperId").get(paperById); //tested
-paperRoute.route("/deletePaper/:paperId").delete(deletePaper);
+paperRoute.route("/deletePaper/:paperId").delete(deletePaper);//tested
 paperRoute.route("/searchPaper").get(searchPaper);
 paperRoute.route("/getJournals").get(getUserJournals)
 paperRoute.route("/getBookChapter").get(getUserBookChapter)

@@ -12,12 +12,13 @@ authors:[{
 }],
   link:{
     type:String,
-    unique:true
+    unique:false
 
   },
   manualUpload:{
     type:String,
-    unique:true
+    unique:false
+
 
   },
   tag:[{
@@ -27,18 +28,18 @@ authors:[{
   }],
   publishedDate:{
     type:String,
-    required:true
+
   },
   // publishedDate:{
   //   type:Date,
   //   required:true
   // },
   publishedBy:{
-    type:Date,
+    type:String,
     required:true
   },
   citedBy:{
-    type:Object,
+    type:Number,
 
   },
 

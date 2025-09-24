@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import {DB_NAME} from "../../constants.js";
 import dotenv from "dotenv"
+import { Paper } from "../models/paper.model.js";
 dotenv.config({
   path:'./.env'
 })

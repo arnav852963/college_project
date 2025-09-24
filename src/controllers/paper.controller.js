@@ -9,15 +9,15 @@ import mongoose, { isValidObjectId } from "mongoose";
 import { ObjectId } from "mongodb";
 import { auth } from "google-auth-library";
 const SearchPaperScholar = asynchandler(async (req,res)=>{
-  const {query} = req.body
+  let  {query,fromYear,tillYear} = req.body
 
-  // addd ADVANCE QUERIES LATER
+  if(!query) throw ApiError(400 , "enter some query")
+
+  if(fromYear && typeof fromYear !=="number") fromYear = parseInt(fromYear)
+  if(tillYear && tillYear !=="number") tillYear = parseInt(tillYear)
 
 
-  if (!query.trim() || !index.trim()) throw ApiError(400 , "enter some query")
-
-
-  const response = await searchScholarAPI(query)
+  const response = await searchScholarAPI(query , fromYear,tillYear)
   if (!response || response.length ===0) throw new ApiError(400 , "scholar search not working")
 
 
@@ -31,18 +31,27 @@ const SearchPaperScholar = asynchandler(async (req,res)=>{
 const saveThesePapers = asynchandler(async (req , res)=>{
   const {arr} = req.body
   if (!arr || arr.length ===0) throw new ApiError(400 , "enter some array")
+
+
   const response=[]
 
   for (let i=0;i<arr.length;i++){
+    const authors =[]
+    arr[i]?.authors?.publication_info?.authors.forEach((obj)=>{
+      authors.push(obj.name)
+    })
+    const yearMatch = arr[i]?.publication_info?.summary.match(/\b\d{4}\b/)
+
+
     const paper = await Paper.create({
       title: arr[i].title,
-      authors: arr[i].authors.split(",").map(a => a.trim()),
-      publishedBy: arr[i].publishedBy,
+      authors:authors || [],
+      publishedBy: arr[i]?.publication_info?.summary,
       link: arr[i].link,
-      publishedDate: arr[i].year,// change to Date type
+      publishedDate: yearMatch[0] || "",// change to Date type
       owner: req?.user?._id,
       // pdfUrl: arr[i].pdf_url,
-      citedBy: arr[i].inline_links.cited_by,
+      citedBy: arr[i].inline_links.cited_by.total,
     })
     if(!paper) throw new ApiError(400 , "cant create paper")
     response.push(paper)
@@ -57,7 +66,7 @@ const uploadPaperManual = asynchandler(async (req , res)=>{
 console.log(req.body)
 
   const {title , author , publishedDate , publishedBy , tag,classifiedAs} = req.body;
-  if (!title || !author || !publishedDate || !publishedBy || !tag||!classifiedAs)  throw new ApiError(400 , "enter details properly")
+  if (!title || !author || !publishedDate || !publishedBy || !tag)  throw new ApiError(400 , "enter details properly")
 
   const local_pdf = req.file.path;
   if (!local_pdf) throw new ApiError(400 , "multer messed")
@@ -78,13 +87,13 @@ console.log(req.body)
     title:title,
     authors:authors,
     manualUpload:upload_pdf.url || "",
-    publishedDate:new Date(publishedDate),
+    publishedDate:publishedDate,
     owner:req?.user?._id,
     publishedBy:publishedBy,
     isManual:true,
     tag:tags,
     isPublished:false,
-    classifiedAs:classifiedAs.toLowerCase().trim()
+    classifiedAs:classifiedAs?.toLowerCase()?.trim()
 
   })
 if (!paper) throw new ApiError(400 , "cant create paper")
@@ -150,14 +159,14 @@ const deletePaper = asynchandler(async (req,res)=>{
     .json(new ApiResponse(200,deleted,"your paper deleted"))
 })
 const searchPaper = asynchandler(async (req,res)=>{
-  const { page, query, sortBy, sortType, userId } = req.query
-  if(!query ||!sortBy||!userId||!isValidObjectId(userId) ||!page) throw new ApiError(400 , "nah")
+  const { page=0, query, sortBy="title"} = req.query
+  if(!query) throw new ApiError(400 , "nah")
 
   const limit = 10
   const skip = (parseInt(page) -1)*limit
   const searchResult = await User.aggregate([{
     $match:{
-      _id: new mongoose.Types.ObjectId(userId)
+      _id: new mongoose.Types.ObjectId(req.user._id)
     }
   },{
     $lookup:{
@@ -175,7 +184,7 @@ const searchPaper = asynchandler(async (req,res)=>{
 
       },{
         $sort:{
-          [sortBy]:sortType === "asc"  ? 1:-1
+          [sortBy]: {1:-1}
         }
 
       },{
@@ -457,7 +466,8 @@ export {
   addTag,
   downloadPaper,
   getUserJournals,
-  getUserBookChapter
+  getUserBookChapter,
+  saveThesePapers
 };
 
 
