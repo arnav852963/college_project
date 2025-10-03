@@ -37,4 +37,7 @@ app.use("/api/v1/projects" , projectRoute)
 
 import adminRoute from "./routes/admin.routes.js";
 app.use("/api/v1/admin" , adminRoute)
+
+import portfolioRoutes from "./routes/portfolio.routes.js";
+app.use("/api/v1/portfolio", portfolioRoutes)
 export {app}

@@ -61,3 +61,4 @@ const newPortfolio = await Portfolio.create({
   }
 return res.status(201).json(new ApiResponse(201 , "Portfolio created successfully" , completedPortfolio))
 })
+export {portfolio}
