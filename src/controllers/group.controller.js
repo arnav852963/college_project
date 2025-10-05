@@ -86,7 +86,7 @@ const createGroupByTag = asynchandler(async (req,res)=>{
   }])
   if(papersWithTag.length ===0 || papersWithTag[0].papers.length === 0) throw new ApiError(400 , "no papers with this tag")
   newGroup.papers = papersWithTag[0].papers
-  await newGroup.save()
+  await newGroup.save({validateBeforeSave:false})
   return res.status(200)
     .json(new ApiResponse(200 , newGroup , "group created of papers with tag" + tag))
 

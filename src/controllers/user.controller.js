@@ -9,6 +9,7 @@ import cookie from "cookie-parser";
 import { app } from "../app.js";
 import mongoose from "mongoose";
 import { verifyGoogleToken } from "../utilities/googleauth.js";
+import { authorScholarApi } from "../utilities/scholar.js";
 
 const generateAccessRefershTokens = async function(_id){
   try{
@@ -501,6 +502,31 @@ const report = asynchandler(async (req,res)=>{
 
 })
 
+const getAuthorScholar = asynchandler(async (req , res)=>{
+  const {authorId} = req.body
+  if(!authorId.trim()) throw new ApiError(400 , "please enter author id")
+
+  const response = await authorScholarApi(authorId)
+  if(!response) throw new ApiError(400 , "cant fetch author info");
+  const {stats , papers , author} = response
+
+  if(papers.length === 0 ) throw new ApiError(500 , "papers can be fetched")
+  if(  stats === {}) throw new ApiError(500 , "cant get stats")
+  if(  author === {}) throw new ApiError(500 , "cant get author details")
+
+  return res.status(200).json(new ApiResponse(200 , {
+    stats:stats,
+    papers: papers,
+    author: author
+  } , `here are all papers of the author ${author.name}`))
 
 
-export {register_user , login_user , logout , getUser , changePassword , refreshAccessTokens,updateUserProfile,updateAvatar,updateCoverImage,deleteUser , report , googleAuthLogin , completeProfile , setPassword}
+
+
+
+
+
+})
+
+
+export {register_user , login_user , logout , getUser , changePassword , refreshAccessTokens,updateUserProfile,updateAvatar,updateCoverImage,deleteUser , report , googleAuthLogin , completeProfile , setPassword , authorScholarApi}
