@@ -526,7 +526,38 @@ const getAuthorScholar = asynchandler(async (req , res)=>{
 
 
 
+
+
+})
+
+const getAuthorId = asynchandler(async (req,res)=>{
+  const { url } = req.body;
+
+  if (!url || typeof url !== "string") {
+    throw new ApiError(400, "URL is required in request body");
+  }
+
+
+
+    const parsedUrl = new URL(url);
+    const authorId = parsedUrl.searchParams.get("user");
+
+    if (!authorId) {
+      throw new ApiError(400, "Author ID not found in provided URL");
+    }
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        { authorId },
+        "Author ID extracted successfully"
+      )
+    );
+
+
+
+
 })
 
 
-export {register_user , login_user , logout , getUser , changePassword , refreshAccessTokens,updateUserProfile,updateAvatar,updateCoverImage,deleteUser , report , googleAuthLogin , completeProfile , setPassword , authorScholarApi}
+export { getAuthorId,  register_user , login_user , logout , getUser , changePassword , refreshAccessTokens,updateUserProfile,updateAvatar,updateCoverImage,deleteUser , report , googleAuthLogin , completeProfile , setPassword , authorScholarApi}

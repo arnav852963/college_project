@@ -1,7 +1,7 @@
 import {Router} from "express"
 import {
   authorScholarApi,
-  changePassword, completeProfile, deleteUser,
+  changePassword, completeProfile, deleteUser, getAuthorId,
   getUser, googleAuthLogin,
   login_user,
   logout,
@@ -33,6 +33,7 @@ userRoutes.route("/setPassword").post(jwt_auth , setPassword)
 userRoutes.route("/getUser").get(jwt_auth, getUser)
 userRoutes.route("/report").get(jwt_auth,report)
 userRoutes.route("/authorProfile").get(jwt_auth , authorScholarApi)
+userRoutes.route("/getAuthorID").get(jwt_auth, getAuthorId)
 //patch
 userRoutes.route("/changePassword").patch(jwt_auth ,changePassword)
 userRoutes.route("/refreshAccessToken").patch(jwt_auth , refreshAccessTokens)
