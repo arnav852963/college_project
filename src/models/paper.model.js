@@ -12,12 +12,14 @@ authors:[{
 }],
   link:{
     type:String,
-    unique:false
+
+    sparse:true
 
   },
   manualUpload:{
     type:String,
-    unique:false
+
+    sparse:true
 
 
   },
@@ -55,7 +57,7 @@ authors:[{
   },
   isManual:{
     type:Boolean,
-    required:true,
+
     default:false
   },
   classifiedAs:{

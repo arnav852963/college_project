@@ -6,7 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="4fdc6654-a58e-45c7-9dd3-716834baf607" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/controllers/paper.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/paper.controller.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/controllers/user.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/user.controller.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/db/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/db/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/models/paper.model.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/models/paper.model.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/routes/paper.route.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/paper.route.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/routes/user.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/user.routes.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -184,7 +188,7 @@
       <workItem from="1759479178154" duration="475000" />
       <workItem from="1759497208451" duration="766000" />
       <workItem from="1759660134177" duration="6439000" />
-      <workItem from="1759682176941" duration="1744000" />
+      <workItem from="1759682176941" duration="9310000" />
     </task>
     <servers />
   </component>
@@ -204,7 +208,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/src/controllers/paper.controller.js</url>
-          <line>142</line>
+          <line>181</line>
           <option name="timeStamp" value="4" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="javascript">

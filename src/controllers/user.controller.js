@@ -505,8 +505,11 @@ const report = asynchandler(async (req,res)=>{
 const getAuthorScholar = asynchandler(async (req , res)=>{
   const {authorId} = req.body
   if(!authorId.trim()) throw new ApiError(400 , "please enter author id")
+  console.log("it starts")
 
   const response = await authorScholarApi(authorId)
+
+  console.log("it ends")
   if(!response) throw new ApiError(400 , "cant fetch author info");
   const {stats , papers , author} = response
 
@@ -531,7 +534,7 @@ const getAuthorScholar = asynchandler(async (req , res)=>{
 })
 
 const getAuthorId = asynchandler(async (req,res)=>{
-  const { url } = req.body;
+  const {url} = req.body;
 
   if (!url || typeof url !== "string") {
     throw new ApiError(400, "URL is required in request body");
@@ -560,4 +563,4 @@ const getAuthorId = asynchandler(async (req,res)=>{
 })
 
 
-export { getAuthorId,  register_user , login_user , logout , getUser , changePassword , refreshAccessTokens,updateUserProfile,updateAvatar,updateCoverImage,deleteUser , report , googleAuthLogin , completeProfile , setPassword , authorScholarApi}
+export { getAuthorId,  register_user , login_user , logout , getUser , changePassword , refreshAccessTokens,updateUserProfile,updateAvatar,updateCoverImage,deleteUser , report , googleAuthLogin , completeProfile , setPassword , getAuthorScholar}
