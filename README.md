@@ -1,7 +1,7 @@
-# Dam_YET - Academic Research Management System
+# ProfConnect - Academic Research Management System
 
 ## Overview
-Dam_YET is a comprehensive backend API for managing academic research assets. It provides a centralized platform for professors and researchers to track and organize their research papers, patents, projects, and professional portfolios.
+ProfConnect is a comprehensive backend API for managing academic research assets. It provides a centralized platform for professors and researchers to track and organize their research papers, patents, projects, and professional portfolios.
 
 ## Tech Stack
 - **Node.js & Express**: RESTful API framework
