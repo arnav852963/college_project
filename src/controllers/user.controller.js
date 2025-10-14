@@ -410,8 +410,7 @@ const deleteUser = asynchandler(async (req,res,next)=>{
 const report = asynchandler(async (req,res)=>{
   const {title = false ,authors =false, tag =false , publishedBy =false, publishedDate=false ,  citedBy=false} = req.body
   const projectObject ={}
-  if ((title === false || title === undefined) && (authors === false || authors === undefined) && (tag === false || tag === undefined) && (publishedBy === false || publishedBy === undefined) && (publishedDate === false || publishedDate === undefined) && (citedBy === false || citedBy === undefined)
-  ) throw  new ApiError(400 , "naah")
+  if (title === false) throw  new ApiError(400 , "naah")
   if (title === true) {
     projectObject.title = 1;
   }
@@ -439,7 +438,7 @@ const report = asynchandler(async (req,res)=>{
     }
   },{
     $lookup:{
-      from:"papers",
+      from:"paper",
       localField:"_id",
       foreignField:"owner",
       pipeline:[{

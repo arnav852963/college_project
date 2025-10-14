@@ -198,7 +198,7 @@ const deletePaper = asynchandler(async (req,res)=>{
     .json(new ApiResponse(200,deleted,"your paper deleted"))
 })
 const searchPaper = asynchandler(async (req,res)=>{
-  const { page=0, query, sortBy="title"} = req.query
+  const { page=1, query, sortBy="title"} = req.query
   if(!query) throw new ApiError(400 , "nah")
 
   const limit = 10
@@ -223,11 +223,14 @@ const searchPaper = asynchandler(async (req,res)=>{
 
       },{
         $sort:{
-          [sortBy]: {1:-1}
+          [sortBy]: -1
         }
 
       },{
         $skip:skip,
+
+
+      },{
         $limit:limit
 
       },{

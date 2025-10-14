@@ -6,12 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="4fdc6654-a58e-45c7-9dd3-716834baf607" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/controllers/admin.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/admin.controller.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/controllers/paper.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/paper.controller.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/controllers/user.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/user.controller.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/db/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/db/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/models/paper.model.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/models/paper.model.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/paper.route.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/paper.route.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/routes/user.routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/user.routes.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,7 +72,7 @@
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
     &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
     &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\HP\\AppData\\Local\\Programs\\IntelliJ IDEA 2025.2.1\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
@@ -188,7 +186,12 @@
       <workItem from="1759479178154" duration="475000" />
       <workItem from="1759497208451" duration="766000" />
       <workItem from="1759660134177" duration="6439000" />
-      <workItem from="1759682176941" duration="9310000" />
+      <workItem from="1759682176941" duration="9492000" />
+      <workItem from="1759733133583" duration="4553000" />
+      <workItem from="1759808738152" duration="2297000" />
+      <workItem from="1760172127502" duration="3064000" />
+      <workItem from="1760271796030" duration="18000" />
+      <workItem from="1760474147339" duration="79000" />
     </task>
     <servers />
   </component>

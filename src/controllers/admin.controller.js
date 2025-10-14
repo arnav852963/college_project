@@ -122,10 +122,10 @@ const userDetails = asynchandler(async (req,res)=>{
     }
   },{
     $lookup:{
-      from:"papers",
+      from:"paper",
       localField:"_id",
       foreignField:"owner",
-      pipeline:[{$sort:{publishedDate:-1}}],
+      pipeline:[{$sort:{createdAt:-1}}],
       as:"papers"
     }
   },{
