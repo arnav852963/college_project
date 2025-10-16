@@ -35,80 +35,7 @@ const adminDashboard = asynchandler(async (req,res)=>{
 
 
 
-const yearRangeDetails = asynchandler(async (req,res)=> {
-  const { from, to } = req.params;
-  if (!from || isNaN(parseInt(from)) || !to || isNaN(parseInt(to)) || parseInt(from) > parseInt(to)) throw new ApiError(400, "invalid year range")
-  const details = await Paper.aggregate([{
-    $match: {
-      $gte: new Date(`${from.trim()}-01-01`),
-      $lte: new Date(`${to.trim()}-12-31`)
-    }
-  }, {
-    $sort: {
-      publishedDate: -1
-    }
-  }])
 
-  if(details.length ===0) throw new ApiError(404,"no papers found for this year range")
-  const journals =[]
-  const conferences =[]
-  const bookChapters =[]
-  details.forEach((item) =>{
-    if(item.classifiedAs === "journal") journals.push(item)
-    else if(item.classifiedAs === "conference") conferences.push(item)
-    else bookChapters.push(item)
-  })
-
-
-  return res.status(200).json(new ApiResponse(200,{
-    total:details.length,
-    journals:journals.length,
-    conferences:conferences.length,
-    bookChapters:bookChapters.length,
-    journalPapers:journals,
-    conferencePapers:conferences,
-    bookChapterPapers:bookChapters
-  },`papers from year range ${from} to ${to} fetched successfully`))
-
-})
-
-const yearWiseDetails = asynchandler(async (req,res)=> {
-  const { year } = req.params;
-  if (!year || !isNaN(parseInt(year.trim()))) throw new ApiError(400, "invalid year range")
-  const years = parseInt(year)
-  const alldetails = await Paper.aggregate([{
-    $match: {
-      $gte: new Date(`${years}-01-01`),
-      $lte: new Date(`${years+1}-01-01`)
-    }
-  }, {
-    $sort: {
-      publishedDate: -1
-    }
-  }])
-
-  if(alldetails.length ===0) throw new ApiError(404,"no papers found for this year range")
-  const journals =[]
-  const conferences =[]
-  const bookChapters =[]
-  alldetails.forEach((item) =>{
-    if(item.classifiedAs === "journal") journals.push(item)
-    else if(item.classifiedAs === "conference") conferences.push(item)
-    else bookChapters.push(item)
-  })
-
-
-  return res.status(200).json(new ApiResponse(200,{
-    total:alldetails.length,
-    journals:journals.length,
-    conferences:conferences.length,
-    bookChapters:bookChapters.length,
-    journalPapers:journals,
-    conferencePapers:conferences,
-    bookChapterPapers:bookChapters
-  },`papers from year range ${years} to ${years+1} fetched successfully`))
-
-})
 
 
 
@@ -182,4 +109,4 @@ const userDetails = asynchandler(async (req,res)=>{
 
 
 
-export {adminDashboard,yearWiseDetails , userDetails, yearRangeDetails}
+export {adminDashboard, userDetails}
