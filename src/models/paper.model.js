@@ -29,7 +29,7 @@ authors:[{
 
   }],
   publishedDate:{
-    type:String,
+    type:Date,
 
   },
   // publishedDate:{

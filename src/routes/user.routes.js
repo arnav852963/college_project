@@ -11,6 +11,7 @@ import {
 import { upload_mul } from "../middlewares/multer.middleware.js";
 import { jwt_auth } from "../middlewares/auth.middleware.js";
 import jwt from "jsonwebtoken";
+import { auth_Limiter } from "../middlewares/ratelimiter.middleware.js";
 const userRoutes = Router()
 userRoutes.route("/register").post(upload_mul.fields([{
   name:"avatar",
@@ -23,10 +24,10 @@ userRoutes.route("/register").post(upload_mul.fields([{
 }]) , register_user)
 
 //post
-userRoutes.route("/login").post(login_user)
+userRoutes.route("/login").post( auth_Limiter,login_user)
 userRoutes.route("/logout").post(jwt_auth , logout)
 
-userRoutes.route("/googleLogin").post(googleAuthLogin)
+userRoutes.route("/googleLogin").post( auth_Limiter,googleAuthLogin)
 userRoutes.route("/completeProfile").post(jwt_auth,upload_mul.single("coverImage"),completeProfile)
 userRoutes.route("/setPassword").post(jwt_auth , setPassword)
 //get

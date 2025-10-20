@@ -25,11 +25,67 @@ const adminDashboard = asynchandler(async (req,res)=>{
   }])
 
   const total=await Paper.find({}).sort({publishedDate:-1})
+  const from  = total[total.length-1].publishedDate.getFullYear()
+  const to = total[0].publishedDate.getFullYear()
+  const analytics =[]
+  for(let i= from ; i<=to ; i++){
+    const start = new Date(`${i}-01-01`)
+    let count =0;
+    for(let j =0 ; j<total.length ; j++){
+      if(total[j].publishedDate === start) count++
+      else break;
+
+    }
+    analytics.push({
+      year:i.toString(),
+      count:count
+    })
+
+  }
+
+
   const conference=await Paper.find({classifiedAs:"conference"})
   const journal=await Paper.find({classifiedAs:"journal"})
   const bookChapter=await Paper.find({classifiedAs:"book chapter"})
   if(total.length===0 || conference.length===0 || journal.length===0 || bookChapter.length===0) throw new ApiError(404,"no papers found")
-  return res.status(200).json(new ApiResponse(200,{totalUsers:users.length,range:`from ${total[total.length-1].publishedDate.toLocaleDateString('en-GB')} to ${total[0].publishedDate.toLocaleDateString('en-GB')}`,total:total.length,conference:conference.length,journal:journal.length,bookChapter:bookChapter.length},"admin dashboard data fetched successfully"))
+  return res.status(200).json(new ApiResponse(200,{totalUsers:users.length,range:`from ${total[total.length-1].publishedDate.toLocaleDateString('en-GB')} to ${total[0].publishedDate.toLocaleDateString('en-GB')}`,yearwiseAnalytics:analytics,total:total.length,conference:conference.length,journal:journal.length,bookChapter:bookChapter.length},"admin dashboard data fetched successfully"))
+
+})
+
+const from_To = asynchandler(async (req , res)=>{
+  const {from , to} = req.body
+  if(!from || !from.trim() || !to || !to.trim()) throw new ApiError(400 , "all fields required")
+
+  const start = new Date(`${parseInt(from.trim())}-01-01`)
+  const end = new Date(`${parseInt(to.trim())}-01-01`) // will be included
+
+  const papers = await Paper.aggregate([{
+    $match:{
+      publishedDate: {
+        $gte:start,
+        $lte:end
+      }
+    }
+  },{
+    $sort:{
+      publishedDate:-1
+    }
+  } ])
+
+  if(!papers || papers.length === 0) throw new ApiError(400,"cant fetch papers")
+  let total_citations = 0;
+  for(let i=0; i<papers.length;i++){
+    total_citations+=papers[i].citedBy
+  }
+  return res.status(200).json(new ApiResponse(200, {
+    count: papers.length,
+    totalCitations:total_citations,
+    listOfPapers:papers
+  } , "here is your data"))
+
+
+
+
 
 })
 
@@ -52,7 +108,7 @@ const userDetails = asynchandler(async (req,res)=>{
       from:"paper",
       localField:"_id",
       foreignField:"owner",
-      pipeline:[{$sort:{createdAt:-1}}],
+      pipeline:[{$match:{isPublished:true}},{$sort:{createdAt:-1}}],
       as:"papers"
     }
   },{
@@ -73,10 +129,19 @@ const userDetails = asynchandler(async (req,res)=>{
       as:"patents"
     }
   },{
+    $addFields:{
+      paperPublishedCount:{$size:"$papers"},
+      patentsCount:{$size:"$patents"},
+      projectCount:{$size:"$projects"}
+    }
+  },{
     $project: {
       papers: 1,
       projects:1,
       patents:1,
+      paperPublishedCount:1,
+      patentsCount:1,
+      projectCount:1
 
     }
   }])
@@ -109,4 +174,6 @@ const userDetails = asynchandler(async (req,res)=>{
 
 
 
-export {adminDashboard, userDetails}
+
+
+export {adminDashboard, userDetails , from_To}

@@ -10,6 +10,7 @@ import { app } from "../app.js";
 import mongoose from "mongoose";
 import { verifyGoogleToken } from "../utilities/googleauth.js";
 import { authorScholarApi } from "../utilities/scholar.js";
+import { Paper } from "../models/paper.model.js";
 
 const generateAccessRefershTokens = async function(_id){
   try{
@@ -512,15 +513,51 @@ const getAuthorScholar = asynchandler(async (req , res)=>{
   if(!response) throw new ApiError(400 , "cant fetch author info");
   const {stats , papers , author} = response
 
-  if(papers.length === 0 ) throw new ApiError(500 , "papers can be fetched")
+  if(!papers || papers.length === 0 ) throw new ApiError(500 , "papers can be fetched")
+
+  const stored =[]
+  for(let i  =0  ; i<papers.length ; i++) {
+    const exists = await Paper.findOne({
+      link:papers[i].link
+    })
+    if(exists) continue;
+
+    const authors = []
+    papers[i]?.authors.split(",").forEach(a => {
+      if (a.trim() !== "") authors.push(a.trim())
+    })
+
+    try {
+      const paper = await Paper.create({
+        title: papers[i]?.title,
+        link: papers[i]?.link,
+        authors: authors,
+        citedBy: papers[i]?.cited_by?.value,
+        publishedBy: papers[i]?.publication,
+        publishedDate: new Date(Number(papers[i]?.year),0),
+        owner: req?.user?._id
+
+
+      })
+
+      if(!paper) throw new ApiError(500 , "paper not stored")
+      if(stored.length<5) stored.push(paper)
+
+    } catch (e){
+      throw new ApiError(500, "mongoDb error")
+
+    }
+  }
+
   if(  stats === {}) throw new ApiError(500 , "cant get stats")
   if(  author === {}) throw new ApiError(500 , "cant get author details")
 
   return res.status(200).json(new ApiResponse(200 , {
     stats:stats,
-    papers: papers,
+    papersStored: stored,
+    paperCount: papers.length,
     author: author
-  } , `here are all papers of the author ${author.name}`))
+  } , `all papers of ${author.name} have been stored in the database`))
 
 
 
@@ -531,6 +568,7 @@ const getAuthorScholar = asynchandler(async (req , res)=>{
 
 
 })
+
 
 const getAuthorId = asynchandler(async (req,res)=>{
   const {url} = req.body;

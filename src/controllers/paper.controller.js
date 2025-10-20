@@ -36,6 +36,11 @@ const saveThesePapers = asynchandler(async (req , res)=>{
   const response=[]
 
   for (let i=0;i<arr.length;i++){
+    const exists = await Paper.findOne({
+      link:arr[i].link
+    })
+    if(exists) continue;
+
     const authors =[]
     arr[i]?.authors?.publication_info?.authors.forEach((obj)=>{
       authors.push(obj.name)
@@ -109,6 +114,11 @@ const savePaperThroughAuthorId =  asynchandler(async (req ,res) =>{
   const response = [];
   for(let i  =0  ; i<arr.length ; i++){
     try {
+
+      const exists = await Paper.findOne({
+        link:arr[i].link
+      })
+      if(exists) continue;
       const authors = []
       arr[i]?.authors.split(",").forEach(a => {
         if (a.trim() !== "") authors.push(a.trim())
@@ -121,7 +131,7 @@ const savePaperThroughAuthorId =  asynchandler(async (req ,res) =>{
         authors: authors,
         citedBy: arr[i]?.cited_by?.value,
         publishedBy: arr[i]?.publication,
-        publishedDate: arr[i]?.year,
+        publishedDate: new Date(Number(arr[i]?.year),0),
         owner: req?.user?._id
 
 
@@ -198,7 +208,7 @@ const deletePaper = asynchandler(async (req,res)=>{
     .json(new ApiResponse(200,deleted,"your paper deleted"))
 })
 const searchPaper = asynchandler(async (req,res)=>{
-  const { page=1, query, sortBy="title"} = req.query
+  const { page=1, query, sortBy="publishedDate"} = req.query
   if(!query) throw new ApiError(400 , "nah")
 
   const limit = 10

@@ -94,7 +94,7 @@ const createGroupByTag = asynchandler(async (req,res)=>{
 })
 
 const addPaperToGroup = asynchandler(async (req ,res)=>{
-  const {paperId , groupId} = req.params
+  const {paperId , groupId} = req.query
   if (!paperId || !isValidObjectId(paperId) || !groupId || !isValidObjectId(groupId)) throw new ApiError(400 , "naah")
 
   const addPaper = await Group.findByIdAndUpdate(groupId,

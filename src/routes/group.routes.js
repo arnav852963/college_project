@@ -13,12 +13,12 @@ groupRoutes.get("/groups/:groupId", getGroupById);
 groupRoutes.route("/getGroupPapers/:groupId").get(getAllGroupPapers)
 
 //post
-groupRoutes.post("/groups", createGroup);
+groupRoutes.post("/createGroup", createGroup);
 groupRoutes.route("/groupByTag").post(createGroupByTag)
 //update
-groupRoutes.patch("/groups/:groupId", updateGroup);
-groupRoutes.patch("/groups/:groupId/papers/:paperId", addPaperToGroup);
-groupRoutes.patch("/groups/:groupId/papers/:paperId", removePaper);
+groupRoutes.patch("/updateGroups/:groupId", updateGroup);
+groupRoutes.patch("/addPaper", addPaperToGroup);
+groupRoutes.patch("/removePaper", removePaper);
 //del
 groupRoutes.delete("/groups/:groupId", deleteGroup);
 
