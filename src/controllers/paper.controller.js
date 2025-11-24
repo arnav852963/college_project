@@ -117,49 +117,6 @@ if (!paper) throw new ApiError(400 , "cant create paper")
 })
 
 
-const savePaperThroughAuthorId =  asynchandler(async (req ,res) =>{
-  const {arr} = req.body;
-
-  if(!arr || arr.length ===0) throw new ApiError(200 , "please add papers")
-  const response = [];
-  for(let i  =0  ; i<arr.length ; i++){
-    try {
-
-      const exists = await Paper.findOne({
-        link:arr[i].link
-      })
-      if(exists) continue;
-      const authors = []
-      arr[i]?.authors.split(",").forEach(a => {
-        if (a.trim() !== "") authors.push(a.trim())
-      })
-
-
-      const paper = await Paper.create({
-        title: arr[i]?.title,
-        link: arr[i]?.link,
-        authors: authors,
-        citedBy: arr[i]?.cited_by?.value,
-        publishedBy: arr[i]?.publication,
-        publishedDate: new Date(Number(arr[i]?.year),0),
-        owner: req?.user?._id
-
-
-      })
-      if (!paper) throw new ApiError(500, "paper not saved")
-
-      if (response.length < 5) response.push(paper)
-    } catch (e){
-
-      throw new ApiError(500 , "error is --> "+ e.message)
-    }
-
-  }
-  if(response.length === 0) throw new ApiError(500 , "paper not saved")
-  return res.status(200).json(new ApiResponse(200 , response , "paper fetched by author id saved"))
-
-})
-
 const getUserConferencePapers = asynchandler(async (req,res)=>{
 
   const papers = await Paper.find({owner:req?.user?._id,classifiedAs:"conference"}).sort({publishedDate:-1})
@@ -174,7 +131,7 @@ const getUserConferencePapers = asynchandler(async (req,res)=>{
 const getUserJournals = asynchandler(async (req,res)=>{
 
   const papers = await Paper.find({owner:req?.user?._id,classifiedAs:"journal"}).sort({publishedDate:-1})
-  if (!papers || papers.length ===0) throw new ApiError(400 , "cant get papers")
+  if (!papers ) throw new ApiError(400 , "cant get papers")
 
 
   return res.status(200)
@@ -185,7 +142,7 @@ const getUserJournals = asynchandler(async (req,res)=>{
 const getUserBookChapter = asynchandler(async (req,res)=>{
 
   const papers = await Paper.find({owner:req?.user?._id,classifiedAs:"book chapter"}).sort({publishedDate:-1})
-  if (!papers || papers.length ===0) throw new ApiError(400 , "cant get papers")
+  if (!papers) throw new ApiError(400 , "cant get papers")
 
 
   return res.status(200)
@@ -543,7 +500,6 @@ export {
   getUserJournals,
   getUserBookChapter,
   saveThesePapers,
-  savePaperThroughAuthorId,
   getPapers,
   deleteAll
 };

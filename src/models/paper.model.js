@@ -61,6 +61,10 @@ authors:[{
 
     default:false
   },
+  isStarred:{
+    type:Boolean,
+    default:false
+  },
   classifiedAs:{
     type:String,
     enum:["journal","conference","book chapter"],

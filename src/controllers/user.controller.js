@@ -519,7 +519,8 @@ const getAuthorScholar = asynchandler(async (req , res)=>{
 
   for(let i  =0  ; i<papers.length ; i++) {
     const exists = await Paper.findOne({
-      link:papers[i].link
+      link:papers[i].link,
+      owner:req?.user?._id
     })
     if(exists) continue;
 

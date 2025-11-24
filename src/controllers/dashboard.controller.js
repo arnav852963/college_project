@@ -15,7 +15,7 @@ const userStats = asynchandler(async (req,res)=>{
     }
   },{
     $lookup:{
-      from:"papers",
+      from:"paper",
       localField:"_id",
       foreignField:"owner",
       as:"papers"

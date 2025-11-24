@@ -4,6 +4,7 @@ import { asynchandler } from "../utilities/asynchandler.js";
 import { ApiResponse } from "../utilities/ApiResponse.js";
 import { ApiError } from "../utilities/ApiError.js";
 import { User } from "../models/user.model.js";
+import { Paper } from "../models/paper.model.js";
 
 const starPaper = asynchandler(async (req,res)=>{
   const {paperId} = req.params
@@ -14,14 +15,27 @@ const starPaper = asynchandler(async (req,res)=>{
     staredBy:req.user._id
   })
   if (exists){
+    const paper = await Paper.findByIdAndUpdate(paperId,{
+      $set:{
+        isStarred:false
+      }
+    } , {new:true})
+    if(!paper) throw new ApiError(400 , "user star not toggled in model")
     const deleteIt = await Star.deleteOne({
       paper:paperId,
       staredBy:req.user._id
     })
     if (deleteIt.deletedCount ===0) throw new ApiError(400 , "still star")
+
     return  res.status(200)
       .json(new ApiResponse(200 , {} , "star removed"))
   }
+  const paper = await Paper.findByIdAndUpdate(paperId,{
+    $set:{
+      isStarred:true
+    }
+  } , {new:true})
+  if(!paper) throw new ApiError(400 , "user star not toggled in model")
   const newStar = await Star.create({
     paper:paperId,
     staredBy:req.user._id
@@ -59,6 +73,8 @@ const getStaredPapers = asynchandler(async (req,res)=>{
               tag:1,
               publishedDate:1,
               publishedBy:1,
+              isStarred:1,
+              citedBy:1
             }
           }]
         }
