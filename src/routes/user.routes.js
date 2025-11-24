@@ -30,13 +30,16 @@ userRoutes.route("/logout").post(jwt_auth , logout)
 userRoutes.route("/googleLogin").post( auth_Limiter,googleAuthLogin)
 userRoutes.route("/completeProfile").post(jwt_auth,upload_mul.single("coverImage"),completeProfile)
 userRoutes.route("/setPassword").post(jwt_auth , setPassword)
+userRoutes.route("/authorProfile").post(jwt_auth , getAuthorScholar)
+userRoutes.route("/getAuthorID").post(jwt_auth, getAuthorId)
 //get
 userRoutes.route("/getUser").get(jwt_auth, getUser)
 userRoutes.route("/report").get(jwt_auth,report)
-userRoutes.route("/authorProfile").get(jwt_auth , getAuthorScholar)
-userRoutes.route("/getAuthorID").get(jwt_auth, getAuthorId)
+
+
 //patch
 userRoutes.route("/changePassword").patch(jwt_auth ,changePassword)
+userRoutes.route("/setPassword").patch(jwt_auth , setPassword)
 userRoutes.route("/refreshAccessToken").patch(jwt_auth , refreshAccessTokens)
 userRoutes.route("/updateDetails").patch(jwt_auth , updateUserProfile)
 userRoutes.route("/updateAvatar").patch(upload_mul.single("avatar"),jwt_auth,updateAvatar)

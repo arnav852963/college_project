@@ -8,6 +8,16 @@ import { User } from "../models/user.model.js";
 import mongoose, { isValidObjectId } from "mongoose";
 import { ObjectId } from "mongodb";
 import { auth } from "google-auth-library";
+
+
+const getPapers = asynchandler(async (req , res)=>{
+  const papers = await Paper.find({owner:req?.user?._id}).sort({publishedDate:-1})
+  if(!papers || papers.length ===0) throw new ApiError(400 , "cant get papers")
+
+  return res.status(200)
+    .json(new ApiResponse(200,papers,"here is your collection"))
+
+})
 const SearchPaperScholar = asynchandler(async (req,res)=>{
   let  {query,fromYear,tillYear} = req.body
 
@@ -152,7 +162,7 @@ const savePaperThroughAuthorId =  asynchandler(async (req ,res) =>{
 
 const getUserConferencePapers = asynchandler(async (req,res)=>{
 
-  const papers = await Paper.find({owner:req?.user?._id,classifiedAs:"conference"})
+  const papers = await Paper.find({owner:req?.user?._id,classifiedAs:"conference"}).sort({publishedDate:-1})
   if (!papers || papers.length ===0) throw new ApiError(400 , "cant get papers")
 
 
@@ -163,7 +173,7 @@ const getUserConferencePapers = asynchandler(async (req,res)=>{
 
 const getUserJournals = asynchandler(async (req,res)=>{
 
-  const papers = await Paper.find({owner:req?.user?._id,classifiedAs:"journal"})
+  const papers = await Paper.find({owner:req?.user?._id,classifiedAs:"journal"}).sort({publishedDate:-1})
   if (!papers || papers.length ===0) throw new ApiError(400 , "cant get papers")
 
 
@@ -174,7 +184,7 @@ const getUserJournals = asynchandler(async (req,res)=>{
 
 const getUserBookChapter = asynchandler(async (req,res)=>{
 
-  const papers = await Paper.find({owner:req?.user?._id,classifiedAs:"book chapter"})
+  const papers = await Paper.find({owner:req?.user?._id,classifiedAs:"book chapter"}).sort({publishedDate:-1})
   if (!papers || papers.length ===0) throw new ApiError(400 , "cant get papers")
 
 
@@ -503,6 +513,19 @@ const downloadPaper = asynchandler(async (req , res)=>{
 
 })
 
+const deleteAll = asynchandler(async (req , res)=>{
+  const deleted = await Paper.deleteMany({})
+  if(!deleted.acknowledged) throw new ApiError(400 , "deletion failed")
+  const userUpdate = await User.findByIdAndUpdate(req.user._id,{
+    $set:{
+      userBio:{},
+      userStats:{}
+    }
+  } , {new:true})
+  return res.status(200)
+    .json(new ApiResponse(200,"all papers deleted"))
+})
+
 export {
   SearchPaperScholar,
   uploadPaperManual,
@@ -520,7 +543,9 @@ export {
   getUserJournals,
   getUserBookChapter,
   saveThesePapers,
-  savePaperThroughAuthorId
+  savePaperThroughAuthorId,
+  getPapers,
+  deleteAll
 };
 
 

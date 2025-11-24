@@ -38,7 +38,8 @@ authors:[{
   // },
   publishedBy:{
     type:String,
-    required:true
+    default:"undisclosed"
+
   },
   citedBy:{
     type:Number,

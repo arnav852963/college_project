@@ -58,6 +58,14 @@ const userModel = new Schema({
   designation:{
     type:String,
     trim:true
+  },
+  userBio:{
+    type:Object,
+    default:{}
+  },
+  userStats:{
+    type:Object,
+    default:{}
   }
 
 

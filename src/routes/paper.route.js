@@ -15,7 +15,7 @@ import {
   getScholarUploads,
   getPublishedPapers,
   getAboutToBePublishedPapers,
-  addTag, downloadPaper, SearchPaperScholar, saveThesePapers, savePaperThroughAuthorId,
+  addTag, downloadPaper, SearchPaperScholar, saveThesePapers, savePaperThroughAuthorId, deleteAll,
 } from "../controllers/paper.controller.js";
 
 const paperRoute = Router();
@@ -38,6 +38,7 @@ paperRoute.route("/searchPaper").get(searchPaper);
 paperRoute.route("/getJournals").get(getUserJournals)
 paperRoute.route("/getBookChapter").get(getUserBookChapter)
 
+
 // functionality routes
 paperRoute.route("/filterSearch").post(filter_search);
 paperRoute.route("/manualUploads").get(getManualUploads);
@@ -46,5 +47,7 @@ paperRoute.route("/publishedPapers").get(getPublishedPapers);
 paperRoute.route("/aboutToBePublishedPapers").get(getAboutToBePublishedPapers);
 paperRoute.route("/addTag/:paperId").post(addTag);
 paperRoute.route("/download/:paperId").get(downloadPaper)//tested
+
+paperRoute.route("/deleteAll").delete(deleteAll)
 
 export default paperRoute;

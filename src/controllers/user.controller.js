@@ -11,6 +11,7 @@ import mongoose from "mongoose";
 import { verifyGoogleToken } from "../utilities/googleauth.js";
 import { authorScholarApi } from "../utilities/scholar.js";
 import { Paper } from "../models/paper.model.js";
+import generateTags from "../utilities/getTag.js";
 
 const generateAccessRefershTokens = async function(_id){
   try{
@@ -35,8 +36,8 @@ const generateAccessRefershTokens = async function(_id){
   }
 }
 
-const register_user = asynchandler(async (req , res , _)=>{
-  console.log("req.body-->" , req.body)
+const register_user = asynchandler(async (req , res )=>{
+
   const {fullName , username, password , email, department,isAdmin , researchInterest ,designation}=req.body
   if ([fullName , username, password , email, department,isAdmin,researchInterest ,designation].some((item)=>{
     if (item) {
@@ -53,7 +54,7 @@ const register_user = asynchandler(async (req , res , _)=>{
   const exists = await User.findOne({
     $or:[{username} , {email}]
   })
-  if(exists) throw new ApiError(400, "user already exists")
+  if(exists) throw new ApiError(400, "user already exists please login")
  const local_path_avatar = req?.files?.avatar[0]?.path
   if (!local_path_avatar) throw new ApiError(401, "multer didnt upload avatar")
   const local_path_coverImage = req?.files?.coverImage[0].path
@@ -145,7 +146,7 @@ const login_user = asynchandler(async (req , res ,_)=>{
       user: user,
       accessToken: accessToken,
       refreshToken: refreshToken
-    }, "logged in as admin"))
+    }, "logged in as user"))
 
 
 
@@ -161,9 +162,9 @@ if (!idToken_email || !idToken_name) throw new ApiError(400 , "google never sent
   if (!payload_email) throw new ApiError(400 , "google didnt verify_email")
   const {email} = payload_email
   const {name , picture} = payload_name
-
-  if (!email.includes("@iiitnr.edu.in")) throw new ApiError(400, "enter the administered college email")
   if (!email || !name) throw new ApiError(400 , "google didnt send email or name")
+  if (!email.includes("@iiitnr.edu.in")) throw new ApiError(400, "enter the administered college email")
+
 
 
   /** @type {import("../models/user.model.js").User} */
@@ -505,17 +506,17 @@ const report = asynchandler(async (req,res)=>{
 const getAuthorScholar = asynchandler(async (req , res)=>{
   const {authorId} = req.body
   if(!authorId.trim()) throw new ApiError(400 , "please enter author id")
-  console.log("it starts")
+
 
   const response = await authorScholarApi(authorId)
 
-  console.log("it ends")
+
   if(!response) throw new ApiError(400 , "cant fetch author info");
   const {stats , papers , author} = response
 
   if(!papers || papers.length === 0 ) throw new ApiError(500 , "papers can be fetched")
+  const journalKeywords = ["journal", "transactions", "letters", "review", "bulletin"];
 
-  const stored =[]
   for(let i  =0  ; i<papers.length ; i++) {
     const exists = await Paper.findOne({
       link:papers[i].link
@@ -526,35 +527,63 @@ const getAuthorScholar = asynchandler(async (req , res)=>{
     papers[i]?.authors.split(",").forEach(a => {
       if (a.trim() !== "") authors.push(a.trim())
     })
+    let classifiesAs = "conference"
+    const title = papers[i]?.title?.toLowerCase() || "";
+    const pub = papers[i]?.publication?.toLowerCase() || "";
+    const isJournal = journalKeywords.some(keyword =>
+      title.includes(keyword) || pub.includes(keyword)
+    );
+    if(isJournal) classifiesAs = "journal";
+
+    const tags = []
+    generateTags(papers[i]?.title || "" ).forEach(tag => {
+      if (tag.trim() !== "") tags.push(tag.trim().toLowerCase())
+    })
+    generateTags(papers[i]?.publication || "" ).forEach(tag => {
+      if (tag.trim() !== "" && !tags.includes(tag.trim())) tags.push(tag.trim().toLowerCase())
+    })
+
+
+
+
+
 
     try {
       const paper = await Paper.create({
-        title: papers[i]?.title,
+        title: papers[i]?.title  ,
         link: papers[i]?.link,
         authors: authors,
         citedBy: papers[i]?.cited_by?.value,
         publishedBy: papers[i]?.publication,
-        publishedDate: new Date(Number(papers[i]?.year),0),
+        publishedDate: new Date(Number(papers[i]?.year),0) || new Date(),
+        classifiedAs: classifiesAs,
+        tag: tags,
         owner: req?.user?._id
 
 
       })
 
       if(!paper) throw new ApiError(500 , "paper not stored")
-      if(stored.length<5) stored.push(paper)
+
 
     } catch (e){
-      throw new ApiError(500, "mongoDb error")
+      throw new ApiError(500, `mongoDb error---->${e.message}`)
 
     }
   }
 
-  if(  stats === {}) throw new ApiError(500 , "cant get stats")
-  if(  author === {}) throw new ApiError(500 , "cant get author details")
+  const userUpdate = await User.findByIdAndUpdate(req.user._id , {
+    $set:{
+      userBio:author,
+      userStats:stats
+    }
+  } , {new:true})
+  if (!userUpdate) throw new ApiError(500 , "user bio not updated")
+
+
 
   return res.status(200).json(new ApiResponse(200 , {
     stats:stats,
-    papersStored: stored,
     paperCount: papers.length,
     author: author
   } , `all papers of ${author.name} have been stored in the database`))
@@ -571,6 +600,7 @@ const getAuthorScholar = asynchandler(async (req , res)=>{
 
 
 const getAuthorId = asynchandler(async (req,res)=>{
+
   const {url} = req.body;
 
   if (!url || typeof url !== "string") {
