@@ -46,7 +46,7 @@ const register_user = asynchandler(async (req , res )=>{
     }
     return !item
   })) throw new ApiError(400 , "all fields are required")
-  const bool_isAdmin = (typeof isAdmin === "string")
+  let bool_isAdmin = (typeof isAdmin === "string")
     ? JSON.parse(isAdmin.toLowerCase())
     : Boolean(isAdmin);
 
@@ -56,6 +56,8 @@ const register_user = asynchandler(async (req , res )=>{
     $or:[{username} , {email}]
   })
   if(exists) throw new ApiError(400, "user already exists please login")
+  if(bool_isAdmin && email !== process.env.ADMIN_EMAIL_CHECK) throw new ApiError(401 , "you are not allowed to register as admin")
+
  const local_path_avatar = req?.files?.avatar[0]?.path
   if (!local_path_avatar) throw new ApiError(401, "multer didnt upload avatar")
   const local_path_coverImage = req?.files?.coverImage[0].path
@@ -84,11 +86,7 @@ const register_user = asynchandler(async (req , res )=>{
     designation:designation
   })
   const response = await User.findById(user._id).select("-password -refreshToken")
-if (bool_isAdmin) {
-  return res
-    .status(200)
-    .json(new ApiResponse(200, response, "user created as admin"))
-}
+
   return res
     .status(200)
     .json(new ApiResponse(200, response, "user created"))
@@ -168,10 +166,14 @@ if (!idToken_email || !idToken_name) throw new ApiError(400 , "google never sent
 
 
 
+
+
   /** @type {import("../models/user.model.js").User} */
   const user = await User.findOne({
     email:email
   }).select("-password -refreshToken")
+
+
   if (!user) {
     const created =await  User.create({
       fullName:name,
@@ -180,6 +182,11 @@ if (!idToken_email || !idToken_name) throw new ApiError(400 , "google never sent
       avatar:picture || "",
     })
     if (!created) throw new ApiError(400 , "user not created")
+
+  if(created?.email === process.env.ADMIN_EMAIL_CHECK) {
+    created.isAdmin = true
+    await created.save({validateBeforeSave:false})
+  }
     const option = {
       http:true,
       secure:true

@@ -11,6 +11,8 @@ const uploadProject = asynchandler(async (req, res) => {
 
   if (!name || !startDate) throw new ApiError(400, "enter details properly");
 
+
+
   const membersArray = [];
   if (teamMembers) {
     teamMembers.split(",").forEach(m => {
@@ -36,7 +38,7 @@ const uploadProject = asynchandler(async (req, res) => {
 
 const updateProject = asynchandler(async (req, res) => {
   const { projectId } = req.params;
-  const { name, description, startDate, endDate, status, teamMembers } = req.body;
+  const { name, description, startDate, endDate, status } = req.body;
 
   if (!projectId || !isValidObjectId(projectId)) throw new ApiError(400, "invalid project id");
 
@@ -48,13 +50,7 @@ const updateProject = asynchandler(async (req, res) => {
   if (startDate) project.startDate = new Date(startDate);
   if (endDate) project.endDate = new Date(endDate);
   if (status) project.status = status;
-  if (teamMembers) {
-    const membersArray = [];
-    teamMembers.split(",").forEach(m => {
-      if (m.trim() !== "") membersArray.push(m.trim());
-    });
-    project.teamMembers = membersArray;
-  }
+
 
   await project.save();
 
@@ -94,4 +90,49 @@ const getUserProjects = asynchandler(async (req, res) => {
     .json(new ApiResponse(200, projects, "here are your projects"));
 });
 
-export { uploadProject, updateProject, getProjectById, deleteProject, getUserProjects };
+const addMemberToProject = asynchandler(async (req, res) => {
+  const { projectId } = req.params;
+  const { memberEmail } = req.body;
+
+  if (!projectId || !isValidObjectId(projectId)) throw new ApiError(400, "invalid project id");
+  if (!memberEmail || memberEmail.trim() === "") throw new ApiError(400, "invalid member email");
+
+  const updatedProject = await Project.findByIdAndUpdate(projectId , {
+    $addToSet:{
+      teamMembers: memberEmail.trim()
+    }
+  } , {new:true})
+  if(!updatedProject) throw new ApiError(400 , "could not add member")
+
+  return res.status(200)
+    .json(new ApiResponse(200, {}, "member added successfully"));
+
+})
+
+const addAttachmentToProject = asynchandler(async (req, res) => {
+  const { projectId } = req.params;
+
+  if (!projectId || !isValidObjectId(projectId)) throw new ApiError(400, "invalid project id");
+
+  if (!req.file) throw new ApiError(400, "no file uploaded");
+
+  const attachmentUrl = req?.file?.attachment
+  if(!attachmentUrl) throw new ApiError(400 , "file upload on multer failed")
+  const uploaded = await upload(attachmentUrl)
+  if(!uploaded.url) throw new ApiError(500 , "file upload to cloudinary failed")
+
+  const project = await Project.findByIdAndUpdate(projectId , {
+    $addToSet:{
+      attachments: uploaded.url
+
+    }
+  },{new:true})
+  if(!project) throw new ApiError(400 , "could not add attachment")
+
+  return res.status(200)
+    .json(new ApiResponse(200, {}, "attachment added successfully"));
+
+
+})
+
+export { uploadProject, updateProject, getProjectById, deleteProject, getUserProjects  , addMemberToProject , addAttachmentToProject };

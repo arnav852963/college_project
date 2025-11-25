@@ -47,24 +47,18 @@ const uploadPatent = asynchandler(async (req, res) => {
 
 const updatePatent = asynchandler(async (req, res) => {
   const { patentId } = req.params;
-  const { title, abstract, filedDate, status, tags } = req.body;
+  const { title="", abstract="", status="" } = req.body;
 
   if (!patentId || !isValidObjectId(patentId)) throw new ApiError(400, "invalid patent id");
 
   const patent = await Patent.findOne({ _id: patentId, owner: req.user._id });
   if (!patent) throw new ApiError(404, "patent not found");
 
-  if (title) patent.title = title;
-  if (abstract) patent.abstract = abstract;
-  if (filedDate) patent.filedDate = new Date(filedDate);
-  if (status) patent.status = status;
-  if (tags) {
-    const tagArray = [];
-    tags.split(",").forEach(t => {
-      if (t.trim() !== "") tagArray.push(t.trim());
-    });
-    patent.tags = tagArray;
-  }
+  if (title.trim()) patent.title = title;
+  if (abstract.trim()) patent.abstract = abstract;
+
+  if (status.trim()) patent.status = status;
+
 
   await patent.save();
 

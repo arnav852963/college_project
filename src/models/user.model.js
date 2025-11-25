@@ -38,6 +38,7 @@ const userModel = new Schema({
   }],
   isAdmin:{
     type:Boolean,
+    default:false
     // require:true
   },
   refreshToken:{
