@@ -12,7 +12,7 @@ import { paperById } from "./paper.controller.js";
 const createGroup = asynchandler(async (req,res)=>{
   const {name , description} = req.body
 
-  if (!name.trim() || !description.trim() ) throw new ApiError(400 , "naaaah")
+  if (!name || !name.trim() || !description || !description.trim() ) throw new ApiError(400 , "naaaah")
   const group = await Group.create({
     name:name,
     description:description,
@@ -26,7 +26,9 @@ const createGroup = asynchandler(async (req,res)=>{
 })
 
 const createGroupByTag = asynchandler(async (req,res)=>{
-  const {tag} = req.body
+  let {tag} = req.body
+
+  tag = tag.toLowerCase()
 
   if(!tag.trim()) throw new ApiError(400 , "naah")
   const exists = await Group.findOne({
@@ -72,6 +74,7 @@ const createGroupByTag = asynchandler(async (req,res)=>{
           tag:1,
           citedBy:1,
           isPublished:1,
+          isStarred:1
         }
       }],
       as: "papers"
@@ -97,6 +100,7 @@ const addPaperToGroup = asynchandler(async (req ,res)=>{
   const {paperId , groupId} = req.query
   if (!paperId || !isValidObjectId(paperId) || !groupId || !isValidObjectId(groupId)) throw new ApiError(400 , "naah")
 
+
   const addPaper = await Group.findByIdAndUpdate(groupId,
     {
       $addToSet:{
@@ -120,35 +124,69 @@ const addPaperToGroup = asynchandler(async (req ,res)=>{
 })
 const updateGroup = asynchandler(async (req,res) =>{
   const {groupId} = req.params
-  const {name , description} = req.body
-  if (!groupId || !name ||!description || !isValidObjectId(groupId)) throw new ApiError(400 , "naah")
+  const {name="" , description=""} = req.body
+
+  if (!groupId || ((!name &&!description) || (!name.trim() && !description.trim()) ) || !isValidObjectId(groupId)) throw new ApiError(400 , "naah")
+
+  const obj ={};
+  if(name.trim()) obj.name = name
+  if(description.trim()) obj.description = description
   const updated = await Group.findByIdAndUpdate(groupId,{
-    $set:{
-      name:name,
-      description:description
-    }
+    $set:obj
   },{new:true}).select("-owner")
   if (!updated) throw new ApiError(400 ,"group not updated")
 
   res.status(200)
-    .json(new ApiResponse(200 ,updated , "group updated" ))
+    .json(new ApiResponse(200 ,{
+      updatedName:updated.name,
+      updatedDescription:updated.description
+    } , "group updated" ))
 
 
 })
 const getGroupById = asynchandler(async (req,res)=>{
   const {groupId} = req.params
   if (!groupId || !isValidObjectId(groupId)) throw new ApiError(400 , "naah")
-  const get = await Group.findById(groupId)
-  if (!get) throw new ApiError(400 , "cant fetch group")
+  const get = await Group.aggregate([{
+    $match:{
+      _id: new mongoose.Types.ObjectId(groupId)
+    }
+  },{
+    $lookup:{
+      from:"paper",
+      localField:"papers",
+      foreignField:"_id",
+      pipeline:[{
+        $project:{
+          refreshToken:0,
+          owner:0,
+          createdAt:0,
+          updatedAt:0,
+
+        }
+      }],
+      as:"papers"
+    }
+
+  },{
+    $project:{
+      papers:1,
+
+    }
+  }])
+  if(get.length ===0) throw new ApiError(400 , "no group found")
+  if(get[0].papers.length ===0) throw new ApiError(400 , "no papers in this group")
+
   return res.status(200)
-    .json(new ApiResponse(200 , get , "heres your group"))
+    .json(new ApiResponse(200 , get[0] , "heres your group"))
 
 
 })
 
 const removePaper = asynchandler(async (req , res) =>{
-  const {paperId , groupId} = req.params
-  if (!paperId||!groupId||isValidObjectId(paperId) ||!isValidObjectId(groupId)) throw new ApiError(400 , "naah")
+  console.log(req.query)
+  const {paperId , groupId} = req?.query
+  if (!paperId||!groupId|| !isValidObjectId(paperId) ||!isValidObjectId(groupId)) throw new ApiError(400 , "naah")
 
   const remove = await Group.findByIdAndUpdate(groupId,{
     $pull:{
@@ -174,42 +212,11 @@ const  deleteGroup = asynchandler(async (req,res)=>{
 })
 
 
-const getAllGroupPapers = asynchandler(async (req,res)=> {
-  const { groupId } = req.params
-  if (!groupId || !isValidObjectId(groupId)) throw new ApiError(400, "naah")
-  const allPapers = await Group.aggregate([{
-    $match: {
-      _id: new mongoose.Types.ObjectId(groupId)
-    }
-  },{
-    $lookup:{
-      from:"paper",
-      localField:"papers",
-      foreignField:"_id",
-      pipeline:[{
-        $project:{
-          title:1,
-          authors:1,
-          link:1,
-          manualUpload:1
-        }
-      }],
-      as:"papers"
-    }
-  },{
-    $project:{
-      papers:1
-    }
-  }])
 
-  if(allPapers.length===0 || allPapers[0].papers.length===0) throw new ApiError(400 , "no papers in this group")
-  return res.status(200)
-    .json(new ApiResponse(200 , allPapers[0].papers , "here are all the papers in this group"))
-})
 
 
 const getAllGroups = asynchandler(async (req,res)=>{
-  const all = await Group.aggregate([{
+  const all = await User.aggregate([{
     $match:{
       _id:new mongoose.Types.ObjectId(req.user._id)
     }
@@ -225,8 +232,8 @@ const getAllGroups = asynchandler(async (req,res)=>{
       groups:1
     }
   }])
-  if (all.length===0 || all.groups.length === 0) throw new ApiError(400 , "cant fetch groups")
+  if (all.length===0 || all[0].groups.length === 0) throw new ApiError(400 , "cant fetch groups")
   return res.status(200)
     .json(new ApiResponse(200 , all[0] , "here is your group collection"))
 })
-export {createGroup , getAllGroups , getGroupById , deleteGroup , addPaperToGroup , removePaper , updateGroup , getAllGroupPapers , createGroupByTag}
+export {createGroup , getAllGroups , getGroupById , deleteGroup , addPaperToGroup , removePaper , updateGroup , createGroupByTag}

@@ -12,6 +12,7 @@ import { verifyGoogleToken } from "../utilities/googleauth.js";
 import { authorScholarApi } from "../utilities/scholar.js";
 import { Paper } from "../models/paper.model.js";
 import generateTags from "../utilities/getTag.js";
+import classifyPaper from "../utilities/classifyPaper.js";
 
 const generateAccessRefershTokens = async function(_id){
   try{
@@ -515,7 +516,7 @@ const getAuthorScholar = asynchandler(async (req , res)=>{
   const {stats , papers , author} = response
 
   if(!papers || papers.length === 0 ) throw new ApiError(500 , "papers can be fetched")
-  const journalKeywords = ["journal", "transactions", "letters", "review", "bulletin"];
+
 
   for(let i  =0  ; i<papers.length ; i++) {
     const exists = await Paper.findOne({
@@ -528,13 +529,12 @@ const getAuthorScholar = asynchandler(async (req , res)=>{
     papers[i]?.authors.split(",").forEach(a => {
       if (a.trim() !== "") authors.push(a.trim())
     })
-    let classifiesAs = "conference"
-    const title = papers[i]?.title?.toLowerCase() || "";
-    const pub = papers[i]?.publication?.toLowerCase() || "";
-    const isJournal = journalKeywords.some(keyword =>
-      title.includes(keyword) || pub.includes(keyword)
-    );
-    if(isJournal) classifiesAs = "journal";
+    let classifiedAs =  "conference"
+    const verdict = classifyPaper({
+      title: papers[i]?.title || "",
+      publication: papers[i]?.publication || ""
+    })
+    if(verdict !== "Other / Unknown") classifiedAs = verdict
 
     const tags = []
     generateTags(papers[i]?.title || "" ).forEach(tag => {
@@ -557,7 +557,7 @@ const getAuthorScholar = asynchandler(async (req , res)=>{
         citedBy: papers[i]?.cited_by?.value,
         publishedBy: papers[i]?.publication,
         publishedDate: new Date(Number(papers[i]?.year),0) || new Date(),
-        classifiedAs: classifiesAs,
+        classifiedAs: classifiedAs,
         tag: tags,
         owner: req?.user?._id
 
