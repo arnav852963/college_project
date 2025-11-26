@@ -5,16 +5,6 @@ import { ApiError } from "../utilities/ApiError.js";
 import { User } from "../models/user.model.js";
 import { isValidObjectId } from "mongoose";
 
-// const getAllPapers = asynchandler(async (req, res) => {
-//   const allPapers = await Paper.aggregate([{
-//     $sort:{
-//       publishedDate:-1
-//     }
-//   }])
-//   if(allPapers.length ===0)throw new ApiError(404,"no papers found")
-//   return res.status(200).json(new ApiResponse(200,allPapers,"all papers fetched successfully"))
-//
-// })
 
 
 const adminDashboard = asynchandler(async (req,res)=>{
@@ -172,8 +162,14 @@ const userDetails = asynchandler(async (req,res)=>{
 
 })
 
+const getAllUsers = asynchandler(async (req,res)=>{
+  const users = await User.find({isAdmin:false})
+  if(!users || users.length ===0) throw new ApiError(404,"no users found")
+  return res.status(200).json(new ApiResponse(200,users,"all users fetched successfully"))
+})
 
 
 
 
-export {adminDashboard, userDetails , from_To}
+
+export {adminDashboard, userDetails , from_To , getAllUsers}

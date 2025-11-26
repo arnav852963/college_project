@@ -7,7 +7,7 @@ const projectSchema = new Schema({
     endDate: { type: Date },
     status: { type: String, enum: ['Not Started', 'In Progress', 'Completed'], default: 'Not Started' },
     teamMembers: [{ type: String }],
-     attachments: [{ type: String }],
+
   owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 }, { timestamps: true });
 

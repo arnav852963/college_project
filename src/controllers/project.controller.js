@@ -5,6 +5,8 @@ import { Project } from "../models/project.model.js";
 import mongoose from "mongoose";
 import { isValidObjectId } from "mongoose";
 import { upload } from "../utilities/Cloudinary.js";
+import {Note} from "../models/note.model.js";
+import { Attachment } from "../models/attachment.model.js";
 
 const uploadProject = asynchandler(async (req, res) => {
   const { name, description, startDate, endDate, status, teamMembers } = req.body;
@@ -113,26 +115,79 @@ const addAttachmentToProject = asynchandler(async (req, res) => {
   const { projectId } = req.params;
 
   if (!projectId || !isValidObjectId(projectId)) throw new ApiError(400, "invalid project id");
+  const {name} = req.body
+  if(!name || name.trim() === "") throw new ApiError(400 , "attachment name required")
 
   if (!req.file) throw new ApiError(400, "no file uploaded");
 
-  const attachmentUrl = req?.file?.attachment
+
+
+  let resourceType = req.file.mimetype.split("/")[1];
+  if(resourceType === "jpeg" || resourceType === "png" || resourceType === "jpg"){
+    resourceType = "auto"
+  }
+  else resourceType = "raw"
+
+  const attachmentUrl = req?.file?.path
   if(!attachmentUrl) throw new ApiError(400 , "file upload on multer failed")
-  const uploaded = await upload(attachmentUrl)
+
+
+  const uploaded = await upload(attachmentUrl , resourceType)
   if(!uploaded.url) throw new ApiError(500 , "file upload to cloudinary failed")
 
-  const project = await Project.findByIdAndUpdate(projectId , {
-    $addToSet:{
-      attachments: uploaded.url
+  const add = await Attachment.create({
+    name: name.trim(),
+    url: uploaded.url,
+    owner: projectId,
+    createdBy: req.user._id
+  })
+  if(!add) throw new ApiError(400 , "could not add attachment")
 
-    }
-  },{new:true})
-  if(!project) throw new ApiError(400 , "could not add attachment")
+
 
   return res.status(200)
-    .json(new ApiResponse(200, {}, "attachment added successfully"));
+    .json(new ApiResponse(200, add, "attachment added successfully"));
 
 
 })
 
-export { uploadProject, updateProject, getProjectById, deleteProject, getUserProjects  , addMemberToProject , addAttachmentToProject };
+const getAllAttachmentsForProject = asynchandler(async (req,res)=>{
+  const {projectId} = req.params;
+
+  if (!projectId || !isValidObjectId(projectId)) throw new ApiError(400, "invalid project id");
+
+  const attachments = await Attachment.find({owner:projectId , createdBy:req?.user?._id }).sort({createdAt:-1});
+  if(!attachments) throw new ApiError(400 , "could not fetch attachments")
+  return res.status(200)
+    .json(new ApiResponse(200, attachments, "here are your attachments"));
+})
+
+const addNotesToProject = asynchandler(async (req,res)=>{
+  const {projectId} = req.params;
+  const {notes} = req.body;
+
+  if (!projectId || !isValidObjectId(projectId)) throw new ApiError(400, "invalid project id");
+  if (!notes || notes.trim() === "") throw new ApiError(400, "notes cannot be empty");
+
+  const newNote = await Note.create({
+    content: notes.trim(),
+    owner: projectId,
+    createdBy: req.user._id
+  });
+  if(!newNote) throw new ApiError(400 , "could not add notes")
+  return res.status(200)
+    .json(new ApiResponse(200, newNote, "notes added successfully"));
+
+})
+const getAllNotesForProject = asynchandler(async (req,res)=>{
+  const {projectId} = req.params;
+
+  if (!projectId || !isValidObjectId(projectId)) throw new ApiError(400, "invalid project id");
+
+  const notes = await Note.find({owner:projectId , createdBy:req?.user?._id }).sort({createdAt:-1});
+  if(!notes) throw new ApiError(400 , "could not fetch notes")
+  return res.status(200)
+    .json(new ApiResponse(200, notes, "here are your notes"));
+})
+
+export { uploadProject, updateProject, getProjectById, deleteProject, getUserProjects  , addMemberToProject , addAttachmentToProject , addNotesToProject , getAllNotesForProject , getAllAttachmentsForProject  };

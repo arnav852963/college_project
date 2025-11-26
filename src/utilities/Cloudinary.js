@@ -12,12 +12,12 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret:process.env.CLOUDINARY_API_SECRET
 })
-const upload = async (local_str)=> {
+const upload = async (local_str , resource_type = "auto")=> {
   try {
 
   if (!local_str) return "path not defined"/*throw new ApiError(401, "path empty")*/
     return await cloudinary.uploader.upload(local_str, {
-    resource_type: "auto"
+    resource_type: resource_type
   })
 } catch (e){
     fs.unlinkSync(local_str)

@@ -6,7 +6,8 @@ import {
   updateProject,
   deleteProject,
   getProjectById,
-  getUserProjects, addMemberToProject, addAttachmentToProject,
+  getUserProjects, addMemberToProject, addAttachmentToProject, addNotesToProject, getAllNotesForProject,
+  getAllAttachmentsForProject,
 } from "../controllers/project.controller.js";
 
 const projectRoute = Router();
@@ -18,8 +19,12 @@ projectRoute.route("/updateProject/:projectId").put(updateProject);
 projectRoute.route("/deleteProject/:projectId").delete(deleteProject);
 projectRoute.route("/getProjectById/:projectId").get(getProjectById)
 projectRoute.route("/addMember/:projectId").patch(addMemberToProject)
-projectRoute.route("/addAttachment/:projectId").patch(upload_mul.single("attachment"), addAttachmentToProject)
-projectRoute.route("getUserProjects").get(getUserProjects)
+projectRoute.route("/addAttachment/:projectId").post(upload_mul.single("attachment"), addAttachmentToProject)
+projectRoute.route("/getUserProjects").get(getUserProjects)
+projectRoute.route("/addNoteToProject/:projectId").post(addNotesToProject)
+projectRoute.route("/getAllNotes/:projectId").get(getAllNotesForProject)
+projectRoute.route("/getAllAttachments/:projectId").get(getAllAttachmentsForProject)
+
 
 
 

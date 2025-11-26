@@ -17,8 +17,8 @@ const uploadPatent = asynchandler(async (req, res) => {
   const local_pdf = req.file?.path;
   if (!local_pdf) throw new ApiError(400, "multer messed");
 
-  const upload_pdf = await upload(local_pdf);
-  if (!upload_pdf.url) throw new ApiError(400, "cloudinary messed");
+  const upload_pdf = await upload(local_pdf , "raw");
+  if (!upload_pdf?.url) throw new ApiError(400, "cloudinary messed");
 
   const tagArray = [];
   if (tags) {
@@ -31,8 +31,8 @@ const uploadPatent = asynchandler(async (req, res) => {
     title: title,
     abstract: abstract,
     applicationNumber: applicationNumber,
-    filedDate: new Date(filedDate),
-    status: status || "Filed",
+    filedDate: new Date(filedDate.trim()),
+    status: status,
     pdfUrl: upload_pdf.url,
     owner: req.user._id,
     tags: tagArray
