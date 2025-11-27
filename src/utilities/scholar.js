@@ -64,6 +64,18 @@ export const authorScholarApi = async (authorId) => {
     const data_300 = await res_200_300.json();
 
     authorInfo.papers.push(...(data_300?.articles || []));
+    if(!data_300?.articles || data_300?.articles?.length <100) return authorInfo
+
+    const res_300_400 = await fetch(
+      `https://serpapi.com/search.json?engine=google_scholar_author&author_id=${authorId}&api_key=${process.env.SERP_API_KEY}&start=300&num=100`
+    );
+    if (!res_300_400.ok) throw new ApiError(500, "Failed to fetch author (page 3)");
+    const data_400 = await res_300_400.json();
+
+    authorInfo.papers.push(...(data_400?.articles || []));
+
+
+
 
     return authorInfo;
   } catch (e) {
