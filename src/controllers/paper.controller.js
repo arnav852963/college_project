@@ -191,13 +191,21 @@ const searchPaper = asynchandler(async (req,res)=>{
       foreignField:"owner",
       pipeline:[{
         $match:{
-          title:{
-            $regex:query,
-            $options:"i"
-          }
-        }
+          $or:[{
+            title: {
+              $regex: query,
+              $options: 'i'
+            }
+          } , {
+            authors:{
+              $regex: query,
+              $options: 'i'
+            }
+          }]
 
 
+
+      }
       },{
         $sort:{
           [sortBy]: -1

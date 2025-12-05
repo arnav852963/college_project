@@ -5,23 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4fdc6654-a58e-45c7-9dd3-716834baf607" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public.temp/215904.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public.temp/215912.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public.temp/215973.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public.temp/216035.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public.temp/429.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public.temp/432.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public.temp/434.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public.temp/444.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public.temp/464.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public.temp/55.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public.temp/Biometric-Cryptosystem-Fusion-A-Secure-Authentication-Paradigm.pptx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public.temp/PATH TO MAANG.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public.temp/dev ops.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/public.temp/identity proof.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/utilities/scholar.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/utilities/scholar.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/controllers/admin.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/admin.controller.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/controllers/paper.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/controllers/paper.controller.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -240,7 +226,10 @@
       <workItem from="1764150438861" duration="5543000" />
       <workItem from="1764165921438" duration="23050000" />
       <workItem from="1764236166013" duration="231000" />
-      <workItem from="1764278256239" duration="5626000" />
+      <workItem from="1764278256239" duration="6188000" />
+      <workItem from="1764351497930" duration="25000" />
+      <workItem from="1764507649441" duration="3406000" />
+      <workItem from="1764964011826" duration="4900000" />
     </task>
     <servers />
   </component>

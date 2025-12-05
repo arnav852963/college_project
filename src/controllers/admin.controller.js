@@ -3,7 +3,7 @@ import { Paper } from "../models/paper.model.js";
 import { ApiResponse } from "../utilities/ApiResponse.js";
 import { ApiError } from "../utilities/ApiError.js";
 import { User } from "../models/user.model.js";
-import { isValidObjectId } from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 
 
 
@@ -87,10 +87,12 @@ const from_To = asynchandler(async (req , res)=>{
 
 const userDetails = asynchandler(async (req,res)=>{
   const {userId} = req.params
+
+
   if(!userId ||!isValidObjectId(userId)) throw new ApiError(400,"invalid user id")
   const user = await User.aggregate([{
     $match: {
-      _id: userId,
+      _id: new mongoose.Types.ObjectId(userId),
       isAdmin: false
     }
   },{
@@ -98,7 +100,7 @@ const userDetails = asynchandler(async (req,res)=>{
       from:"paper",
       localField:"_id",
       foreignField:"owner",
-      pipeline:[{$match:{isPublished:true}},{$sort:{createdAt:-1}}],
+      pipeline:[{$sort:{createdAt:-1}}],
       as:"papers"
     }
   },{
@@ -136,6 +138,7 @@ const userDetails = asynchandler(async (req,res)=>{
     }
   }])
   if(user.length ===0 || user[0].papers.length ===0) throw new ApiError(404,"no user found")
+  console.log(user[0])
 
   const journals =[]
   const conferences =[]
