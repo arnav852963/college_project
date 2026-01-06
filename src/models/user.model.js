@@ -2,6 +2,11 @@ import mongoose , {Schema} from "mongoose";
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import * as trace_events from "node:trace_events";
+import dotenv from "dotenv";
+dotenv.config({
+  path: "./.env",
+});
+
 const userModel = new Schema({
   username:{
     type:String,
