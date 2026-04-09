@@ -1,7 +1,13 @@
 # ProfConnect - Academic Research Management System
 
+> **Frontend Repository (UI):** **https://github.com/arnav852963/COLLEGE_PORTAL_FRONTEND**
+
 ## Overview
 ProfConnect is a comprehensive backend API for managing academic research assets. It provides a centralized platform for professors and researchers to track and organize their research papers, patents, projects, and professional portfolios.
+
+## Related Repositories
+
+- **Frontend (Vite + React):** https://github.com/arnav852963/COLLEGE_PORTAL_FRONTEND
 
 ## Tech Stack
 - **Node.js & Express**: RESTful API framework

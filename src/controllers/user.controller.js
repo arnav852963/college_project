@@ -68,7 +68,7 @@ const register_user = asynchandler(async (req , res )=>{
     ? JSON.parse(isAdmin.toLowerCase())
     : Boolean(isAdmin);
 
-  if (!email.includes("@iiitnr.edu.in")) throw new ApiError(400, "enter the administered college email")
+
 
   const exists = await User.findOne({
     $or:[{username} , {email}]
@@ -180,7 +180,7 @@ if (!idToken_email || !idToken_name) throw new ApiError(400 , "google never sent
   const {email} = payload_email
   const {name , picture} = payload_name
   if (!email || !name) throw new ApiError(400 , "google didnt send email or name")
-  if (!email.includes("@iiitnr.edu.in")) throw new ApiError(400, "enter the administered college email")
+
 
 
 
@@ -538,7 +538,7 @@ const report = asynchandler(async (req, res) => {
           ...reportData.flatMap((paper, index) => {
             const block = [];
 
-            // Heading
+
             block.push(
               new Paragraph({
                 heading: HeadingLevel.HEADING_2,
@@ -546,12 +546,12 @@ const report = asynchandler(async (req, res) => {
               })
             );
 
-            // Add all enabled fields
+
             for (const key in FIELD_MAP) {
               const { label, enabled } = FIELD_MAP[key];
               if (!enabled || !paper[key]) continue;
 
-              // Special handling for URLs
+
               if (key === "link" || key === "manualUpload") {
                 block.push(
                   new Paragraph({
@@ -570,7 +570,7 @@ const report = asynchandler(async (req, res) => {
                 continue;
               }
 
-              // Normal text fields
+
               if (Array.isArray(paper[key])) {
                 block.push(
                   new Paragraph({
@@ -600,7 +600,7 @@ const report = asynchandler(async (req, res) => {
     ],
   });
 
-  // Generate DOCX
+
   const buffer = await Packer.toBuffer(doc);
 
   res.setHeader(
@@ -640,7 +640,7 @@ const getAuthorScholar = asynchandler(async (req , res)=>{
   const filteredPapers = papers.filter(p => {
     if (!p?.link) return false;
     return !existingLinks.has(p.link.trim());
-  }) // create a new array  , original ko mutate  nai krta
+  })
 
   if (filteredPapers.length === 0) {
     throw new ApiError(400, "all papers already exist in the database");
@@ -732,8 +732,7 @@ const getAuthorId = asynchandler(async (req,res)=>{
     throw new ApiError(400 , "you have already set your profile link , cannot change it")
   }
 
-  // const isLinkAlreadyThere = await User.findOne({userProfileLink: url.trim()})
-  // if(isLinkAlreadyThere && isLinkAlreadyThere._id !== new mongoose.Types.ObjectId( req?.user?._id)) throw new ApiError(400 , "this profile link is already associated with another user")
+
 
 
 
