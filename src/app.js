@@ -1,27 +1,31 @@
 import express from "express"
 import cors from "cors"
 import cookie from "cookie-parser"
-import { rate_limit } from "./middlewares/ratelimiter.middleware.js";
 
 const app = express();
 
 
 app.set("trust proxy", 1);
 
-
 const allowedOrigins = String(process.env.CORS_ORIGINS || process.env.CORS_ORIGIN || "")
   .split(",")
   .map((o) => o.trim())
   .filter(Boolean);
 
-app.use(
-  cors({
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.length === 0) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
 
-    origin: process.env.CORS_ORIGIN,
-
-    credentials: true,
-  })
-);
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 
 
@@ -29,7 +33,7 @@ app.use(
 app.use(express.json({limit:'16kb'}))
 app.use(express.urlencoded({extended:true,limit:'16kb'}))
 app.use(express.static("public"))
-app.use(cookie()) //global middleware hai ye. har req mei cookie as header bhejta hai
+app.use(cookie())
 
 
 import userRoutes from "./routes/user.routes.js";
