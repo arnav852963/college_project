@@ -3,14 +3,28 @@ import cors from "cors"
 import cookie from "cookie-parser"
 import { rate_limit } from "./middlewares/ratelimiter.middleware.js";
 
-console.log("cors---->",process.env.CORS_ORIGIN)
-
 const app = express();
-app.use(cors({
-  origin:process.env.CORS_ORIGIN,
-  credentials:true
 
-}))
+
+app.set("trust proxy", 1);
+
+
+const allowedOrigins = String(process.env.CORS_ORIGINS || process.env.CORS_ORIGIN || "")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+
+    origin: process.env.CORS_ORIGIN,
+
+    credentials: true,
+  })
+);
+
+
+
 
 app.use(express.json({limit:'16kb'}))
 app.use(express.urlencoded({extended:true,limit:'16kb'}))

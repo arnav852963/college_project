@@ -2,11 +2,7 @@ import {User} from "../models/user.model.js";
 import { asynchandler } from "../utilities/asynchandler.js";
 import { ApiError } from "../utilities/ApiError.js";
 import { ApiResponse } from "../utilities/ApiResponse.js";
-import jwt from "jsonwebtoken"
 import { upload } from "../utilities/Cloudinary.js";
-import { upload_mul } from "../middlewares/multer.middleware.js";
-import cookie from "cookie-parser";
-import { app } from "../app.js";
 import mongoose from "mongoose";
 import { verifyGoogleToken } from "../utilities/googleauth.js";
 import { authorScholarApi } from "../utilities/scholar.js";
@@ -19,12 +15,8 @@ import {
   Paragraph,
   TextRun,
   HeadingLevel,
-  AlignmentType,
-  ExternalHyperlink,
-  BorderStyle
+  ExternalHyperlink
 } from "docx";
-import fs from "fs";
-import path from "path";
 import { Patent } from "../models/patent.model.js";
 import { Project } from "../models/project.model.js";
 import { Group } from "../models/group.model.js";
@@ -32,13 +24,18 @@ import { Attachment } from "../models/attachment.model.js";
 import { Note } from "../models/note.model.js";
 import { Star } from "../models/star.model.js";
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+  path: "/",
+};
+
 const generateAccessRefershTokens = async function(_id){
   try{
-    /** @type {import("../models/user.model.js").User} */
     const user = await User.findById(_id)
     const refreshToken = user.generateRefreshToken()
     const accessToken = user.generateAccessToken()
-      // console.log("accessToken " , accessToken ,"refreshToken-->", refreshToken)
     if (!accessToken || !refreshToken) throw new ApiError(400, "tokens not generated in the method")
     user.refreshToken = refreshToken
     await user.save({validateBeforeSave:false})
@@ -125,22 +122,14 @@ const register_user = asynchandler(async (req , res )=>{
 const login_user = asynchandler(async (req , res ,_)=>{
   const {email , password} = req.body
   if (!email.trim() || !password) throw new ApiError(401 , "enter full details")
-
-  /** @type {import("../models/user.model.js").User} */
-
   const user = await User.findOne({
     email
   });
   if (!user) throw new ApiError(401 , "please register")
-
-  /** @type {import("../models/user.model.js").User} */
   const isCorrect = await user.isPasswordCorrect(password)
   if (!isCorrect) throw new ApiError(401 , "password is wrong")
   const {accessToken , refreshToken} = await generateAccessRefershTokens(user._id)
-  const options = {
-    httpOnly:true,
-    secure:true
-  }
+  const options = cookieOptions
   user.refreshToken = ""
   user.password = ""
 
@@ -181,12 +170,6 @@ if (!idToken_email || !idToken_name) throw new ApiError(400 , "google never sent
   const {name , picture} = payload_name
   if (!email || !name) throw new ApiError(400 , "google didnt send email or name")
 
-
-
-
-
-
-  /** @type {import("../models/user.model.js").User} */
   const user = await User.findOne({
     email:email
   }).select("-password -refreshToken")
@@ -205,10 +188,7 @@ if (!idToken_email || !idToken_name) throw new ApiError(400 , "google never sent
     created.isAdmin = true
     await created.save({validateBeforeSave:false})
   }
-    const option = {
-      httpOnly:true,
-      secure:true
-    }
+    const option = cookieOptions
     const {accessToken,refreshToken} =await generateAccessRefershTokens(created._id)
 
     if (!accessToken || !refreshToken) throw new ApiError(400, "tokens not generated")
@@ -223,10 +203,7 @@ if (!idToken_email || !idToken_name) throw new ApiError(400 , "google never sent
 
 
   }
-  const options = {
-    httpOnly:true,
-    secure:true
-  }
+  const options = cookieOptions
   const {accessToken,refreshToken} = await generateAccessRefershTokens(user._id)
   // console.log("accessToken " , accessToken ,"refreshToken-->", refreshToken)
   if (!accessToken || !refreshToken) throw new ApiError(400, "tokens not generated")
@@ -241,10 +218,6 @@ if (!idToken_email || !idToken_name) throw new ApiError(400 , "google never sent
 
 })
 const completeProfile = asynchandler(async (req , res)=>{
-  /** @type {import("../models/user.model.js").User} */
-
-  console.log("req.files-->" , req.files)
-
   const {department , isAdmin , researchInterest ,designation} = req.body
   if (!department || !department.trim()|| !isAdmin || !isAdmin.trim() || !researchInterest|| !researchInterest.trim()) throw new ApiError(400 , "add details")
 
@@ -281,7 +254,7 @@ const completeProfile = asynchandler(async (req , res)=>{
 })
 
 
-const  setPassword = asynchandler(async (req,res,next)=> {
+const  setPassword = asynchandler(async (req,res)=> {
   const { new_password, confirm_password } = req.body
   if (!new_password.trim() || !confirm_password.trim()) throw new ApiError(401, "np empty strings")
   if (new_password !== confirm_password) throw new ApiError(400, "doest match with the confirm password")
@@ -296,18 +269,11 @@ const  setPassword = asynchandler(async (req,res,next)=> {
 
 const logout= asynchandler(async (req,res,_)=>{
 const user =await User.findByIdAndUpdate(req?.user?._id , {
-  // $set:{
-  //   refreshToken:undefined
-  // }
   $unset: { refreshToken: 1 }
 } , {new:true}).select("-password")
-  const options = {
-  http: true,
-    secure: true
-  }
   return res.status(200)
-    .clearCookie("accessToken")
-    .clearCookie("refreshToken")
+    .clearCookie("accessToken", cookieOptions)
+    .clearCookie("refreshToken", cookieOptions)
     .json(new ApiResponse(200 , user , "logged out successfully"))
 
 
@@ -321,10 +287,6 @@ const changePassword = asynchandler(async (req , res)=>{
   const {original_password , new_password , confirm_password}  = req.body
   if (!original_password.trim()||!new_password.trim() ||!confirm_password.trim()) throw new ApiError(401 , "np empty strings")
   if (new_password!==confirm_password) throw new ApiError(400 , "doest match with the confirm password")
-
-  /** @type {import("../models/user.model.js").User} */
-
-
   const user= await User.findById(req?.user?._id)
   if (!user)  throw new ApiError(400 , "user not fetched ")
   if (!(await user.isPasswordCorrect(original_password)))  throw new ApiError(400 , "password wrong")
@@ -345,8 +307,7 @@ const refreshAccessTokens = asynchandler(async (req,res)=>{
   const { accessToken, refreshToken } = await generateAccessRefershTokens(req.user._id)
 
   const options = {
-    http: true,
-    secure: true
+    ...cookieOptions,
   }
   return res
     .status(200)
@@ -367,9 +328,6 @@ const updateUserProfile = asynchandler(async (req,res)=>{
   const {new_email,new_username} = req.body
   if (!new_email.trimEnd() || !new_username.trim()) throw new ApiError(401 , "user please enter something")
   if (!new_email.includes("@iiitnr.edu.in")) throw new ApiError(400, "enter the administered college email")
-
-  /** @type {import("../models/user.model.js").User} */
-
   const user = await User.findByIdAndUpdate(req.user._id ,{
 
     $set:{
@@ -392,16 +350,12 @@ const updateAvatar = asynchandler(async (req,res)=>{
   if (!local_path) throw new ApiError(401 , "path not found")
   const upload_ = await upload(local_path)
   if (!upload_.url) throw new ApiError(401 , "not uploaded")
-
-  /** @type {import("../models/user.model.js").User} */
-
   const user = await User.findByIdAndUpdate(req.user._id , {
     $set:{
       avatar:upload_.url
     }
   },{new:true})
   if (!user) throw new ApiError(400,"user not fetched")
-  console.log("user new avatar-->",user.avatar)
   return res.status(200).json(new ApiResponse(200 , user , "avatar updated"))
 
 
@@ -412,9 +366,6 @@ const updateCoverImage = asynchandler(async (req,res)=>{
   if (!local_path_) throw new ApiError(401 , "path not found")
   const upload_cover = await upload(local_path_)
   if (!upload_cover.url) throw new ApiError(401 , "not uploaded")
-
-  /** @type {import("../models/user.model.js").User} */
-
   const user = await User.findByIdAndUpdate(req.user._id , {
     $set:{
       coverImage:upload_cover.url
@@ -425,20 +376,20 @@ const updateCoverImage = asynchandler(async (req,res)=>{
 
 
 })
-const deleteUser = asynchandler(async (req,res,next)=>{
-  const user = await User.deleteOne({_id:req?.user?._id})
-  const papers = await Paper.deleteMany({owner:req?.user?._id})
-  const patents = await Patent.deleteMany({owner:req?.user?._id})
-  const project = await Project.deleteMany({owner:req?.user?._id})
-  const group = await Group.deleteMany({owner:req?.user?._id})
-  const attachment = await Attachment.deleteMany({createdBy:req?.user?._id})
-  const notes = await Note.deleteMany({createdBy:req?.user?._id})
-  const star = await Star.deleteMany({ staredBy: req?.user?._id})
+const deleteUser = asynchandler(async (req,res)=>{
+  await User.deleteOne({_id:req?.user?._id})
+  await Paper.deleteMany({owner:req?.user?._id})
+  await Patent.deleteMany({owner:req?.user?._id})
+  await Project.deleteMany({owner:req?.user?._id})
+  await Group.deleteMany({owner:req?.user?._id})
+  await Attachment.deleteMany({createdBy:req?.user?._id})
+  await Note.deleteMany({createdBy:req?.user?._id})
+  await Star.deleteMany({ staredBy: req?.user?._id})
 
 
   res.status(200)
-    .clearCookie("accessToken")
-    .clearCookie("refreshToken")
+    .clearCookie("accessToken", cookieOptions)
+    .clearCookie("refreshToken", cookieOptions)
     .json(new  ApiResponse(200,{},"logged out and deleted"))
 
 })
@@ -450,9 +401,16 @@ const report = asynchandler(async (req, res) => {
     publishedBy = false,
     publishedDate = false,
     citedBy = false,
-  } = req.body;
+  } = req.body ?? {};
 
-  const projectObject = {};
+  const selection = { title, authors, tag, publishedBy, publishedDate, citedBy };
+  const anySelected = Object.values(selection).some((v) => v === true);
+  if (!anySelected) throw new ApiError(400, "Select at least one field to generate report");
+
+  const projectObject = {
+    link: 1,
+    manualUpload: 1,
+  };
 
   if (title === true) projectObject.title = 1;
   if (authors === true) projectObject.authors = 1;
@@ -460,10 +418,6 @@ const report = asynchandler(async (req, res) => {
   if (publishedBy === true) projectObject.publishedBy = 1;
   if (publishedDate === true) projectObject.publishedDate = 1;
   if (citedBy === true) projectObject.citedBy = 1;
-
-  // Always include URLs
-  projectObject.link = 1;
-  projectObject.manualUpload = 1;
 
   const paperReport = await User.aggregate([
     {
@@ -488,7 +442,12 @@ const report = asynchandler(async (req, res) => {
               },
               manualUpload: {
                 $cond: {
-                  if: { $and: [{ $ne: ["$manualUpload", null] }, { $ne: ["$manualUpload", ""] }] },
+                  if: {
+                    $and: [
+                      { $ne: ["$manualUpload", null] },
+                      { $ne: ["$manualUpload", ""] },
+                    ],
+                  },
                   then: "$manualUpload",
                   else: "$$REMOVE",
                 },
@@ -503,113 +462,131 @@ const report = asynchandler(async (req, res) => {
       },
     },
     {
-      $addFields: { count: { $size: "$details" } },
-    },
-    {
-      $project: { details: 1, count: 1 },
+      $project: { details: 1 },
     },
   ]);
 
-  if (!paperReport.length || !paperReport[0].details.length)
-    throw new ApiError(400, "report not generated");
+  const reportData = paperReport?.[0]?.details ?? [];
+  if (reportData.length === 0) throw new ApiError(400, "No papers found to generate report");
 
-  const reportData = paperReport[0].details;
-
-  const FIELD_MAP = {
-    title: { label: "Title", enabled: title },
-    authors: { label: "Authors", enabled: authors },
-    tag: { label: "Tag", enabled: tag },
-    publishedBy: { label: "Published By", enabled: publishedBy },
-    publishedDate: { label: "Published Date", enabled: publishedDate },
-    citedBy: { label: "Cited By", enabled: citedBy },
-    link: { label: "Link", enabled: true },
-    manualUpload: { label: "Manual Upload", enabled: true },
+  const formatDate = (value) => {
+    if (!value) return "";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return String(value);
+    return d.toISOString().slice(0, 10);
   };
+
+  const FIELD_MAP = [
+    { key: "title", label: "Title", enabled: title },
+    { key: "authors", label: "Authors", enabled: authors },
+    { key: "tag", label: "Tags", enabled: tag },
+    { key: "publishedBy", label: "Published By", enabled: publishedBy },
+    { key: "publishedDate", label: "Published Date", enabled: publishedDate },
+    { key: "citedBy", label: "Cited By", enabled: citedBy },
+  ].filter((f) => f.enabled);
+
+  const makeKeyValueParagraph = (label, value) =>
+    new Paragraph({
+      children: [
+        new TextRun({ text: `${label}: `, bold: true }),
+        new TextRun({ text: value }),
+      ],
+    });
+
+  const makeLinkParagraph = (label, url) => {
+    if (!url) return null;
+    return new Paragraph({
+      children: [
+        new TextRun({ text: `${label}: `, bold: true }),
+        new ExternalHyperlink({
+          link: url,
+          children: [
+            new TextRun({
+              text: url,
+              style: "Hyperlink",
+            }),
+          ],
+        }),
+      ],
+    });
+  };
+
+  const children = [
+    new Paragraph({
+      text: "Research Papers Report",
+      heading: HeadingLevel.TITLE,
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({ text: "Generated on: ", bold: true }),
+        new TextRun({ text: new Date().toISOString().slice(0, 19).replace("T", " ") }),
+      ],
+    }),
+    new Paragraph({
+      children: [
+        new TextRun({ text: "Total papers: ", bold: true }),
+        new TextRun({ text: String(reportData.length) }),
+      ],
+    }),
+    new Paragraph(""),
+  ];
+
+  reportData.forEach((paper, index) => {
+    const headingText = paper?.title ? `${index + 1}. ${paper.title}` : `${index + 1}. Paper`;
+    children.push(
+      new Paragraph({
+        text: headingText,
+        heading: HeadingLevel.HEADING_2,
+      })
+    );
+
+    FIELD_MAP.forEach(({ key, label }) => {
+      const value = paper?.[key];
+      if (value === undefined || value === null) return;
+
+      if (key === "publishedDate") {
+        const formatted = formatDate(value);
+        if (formatted) children.push(makeKeyValueParagraph(label, formatted));
+        return;
+      }
+
+      if (Array.isArray(value)) {
+        const joined = value.filter(Boolean).map(String).join(", ");
+        if (joined) children.push(makeKeyValueParagraph(label, joined));
+        return;
+      }
+
+      const str = String(value).trim();
+      if (!str) return;
+      children.push(makeKeyValueParagraph(label, str));
+    });
+
+    const linkPara = makeLinkParagraph("Link", paper?.link);
+    if (linkPara) children.push(linkPara);
+
+    const uploadPara = makeLinkParagraph("Manual Upload", paper?.manualUpload);
+    if (uploadPara) children.push(uploadPara);
+
+    children.push(new Paragraph(""));
+  });
 
   const doc = new Document({
     sections: [
       {
-        children: [
-          new Paragraph({
-            text: "Research Paper Report",
-            heading: HeadingLevel.TITLE,
-          }),
-
-          ...reportData.flatMap((paper, index) => {
-            const block = [];
-
-
-            block.push(
-              new Paragraph({
-                heading: HeadingLevel.HEADING_2,
-                text: `${index + 1}. ${FIELD_MAP.title.enabled ? paper.title || "" : ""}`,
-              })
-            );
-
-
-            for (const key in FIELD_MAP) {
-              const { label, enabled } = FIELD_MAP[key];
-              if (!enabled || !paper[key]) continue;
-
-
-              if (key === "link" || key === "manualUpload") {
-                block.push(
-                  new Paragraph({
-                    children: [
-                      new TextRun({ text: `${label}:`, bold: true }),
-                      new TextRun({ break: 1 }), // Move URL to next line
-                      new TextRun({
-                        text: paper[key],
-                        style: "Hyperlink", // clickable link
-                      }),
-                    ],
-                  })
-                );
-
-                block.push(new Paragraph("")); // spacing
-                continue;
-              }
-
-
-              if (Array.isArray(paper[key])) {
-                block.push(
-                  new Paragraph({
-                    children: [
-                      new TextRun({ text: `${label}: `, bold: true }),
-                      new TextRun(paper[key].join(", ")),
-                    ],
-                  })
-                );
-              } else {
-                block.push(
-                  new Paragraph({
-                    children: [
-                      new TextRun({ text: `${label}: `, bold: true }),
-                      new TextRun(String(paper[key])),
-                    ],
-                  })
-                );
-              }
-            }
-
-            block.push(new Paragraph("")); // spacing
-            return block;
-          }),
-        ],
+        children,
       },
     ],
   });
 
-
   const buffer = await Packer.toBuffer(doc);
 
+  const filename = `profconnect-report-${new Date().toISOString().slice(0, 10)}.docx`;
   res.setHeader(
     "Content-Type",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
   );
-  res.setHeader("Content-Disposition", "attachment; filename=report.docx");
-
-  return res.send(buffer);
+  res.setHeader("Content-Disposition", `attachment; filename=\"${filename}\"`);
+  return res.status(200).send(buffer);
 });
 
 

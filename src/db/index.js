@@ -1,11 +1,7 @@
 import mongoose from "mongoose";
 import {DB_NAME} from "../../constants.js";
-import dotenv from "dotenv"
 import { Paper } from "../models/paper.model.js";
-dotenv.config({
-  path:'./.env'
-})
-console.log(process.env.MONGODB_URL)
+
 const db = async ()=>{
   try{
     const mongo = await mongoose.connect(`${process.env.MONGODB_URL}/${DB_NAME}`)

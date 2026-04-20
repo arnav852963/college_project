@@ -1,10 +1,6 @@
 import axios from "axios";
 import { ApiError } from "./ApiError.js";
-import dotenv from "dotenv"
 import { throws } from "node:assert";
-dotenv.config({
-  path:"./.env"
-})
 //  search
 export const searchScholarAPI = async (query,fromYear=-1,tillYear=-1) => {
 
