@@ -327,7 +327,7 @@ const refreshAccessTokens = asynchandler(async (req,res)=>{
 const updateUserProfile = asynchandler(async (req,res)=>{
   const {new_email,new_username} = req.body
   if (!new_email.trimEnd() || !new_username.trim()) throw new ApiError(401 , "user please enter something")
-  if (!new_email.includes("@iiitnr.edu.in")) throw new ApiError(400, "enter the administered college email")
+
   const user = await User.findByIdAndUpdate(req.user._id ,{
 
     $set:{
