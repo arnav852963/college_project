@@ -35,7 +35,12 @@ app.use(express.urlencoded({extended:true,limit:'16kb'}))
 app.use(express.static("public"))
 app.use(cookie())
 
+app.get("/" , (req,res)=>{
+    res.status(200).json({
 
+      message: " Welcome to the College Portal API. Please refer to the documentation for available endpoints and usage guidelines."
+    })
+})
 import userRoutes from "./routes/user.routes.js";
 app.use("/api/v1/users" , userRoutes)
 
