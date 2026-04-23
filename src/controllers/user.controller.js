@@ -24,11 +24,24 @@ import { Attachment } from "../models/attachment.model.js";
 import { Note } from "../models/note.model.js";
 import { Star } from "../models/star.model.js";
 
-const cookieOptions = {
+const ACCESS_COOKIE_MAX_AGE = 24 * 60 * 60 * 1000;
+const REFRESH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+
+const cookieBaseOptions = {
   httpOnly: true,
   secure: true,
   sameSite: "none",
   path: "/",
+};
+
+const accessCookieOptions = {
+  ...cookieBaseOptions,
+  maxAge: ACCESS_COOKIE_MAX_AGE,
+};
+
+const refreshCookieOptions = {
+  ...cookieBaseOptions,
+  maxAge: REFRESH_COOKIE_MAX_AGE,
 };
 
 const generateAccessRefershTokens = async function(_id){
@@ -129,15 +142,16 @@ const login_user = asynchandler(async (req , res ,_)=>{
   const isCorrect = await user.isPasswordCorrect(password)
   if (!isCorrect) throw new ApiError(401 , "password is wrong")
   const {accessToken , refreshToken} = await generateAccessRefershTokens(user._id)
-  const options = cookieOptions
+  const accessOptions = accessCookieOptions
+  const refreshOptions = refreshCookieOptions
   user.refreshToken = ""
   user.password = ""
 
   if (user.isAdmin) {
     res
       .status(200)
-      .cookie("accessToken", accessToken, options)
-      .cookie("refreshToken", refreshToken, options)
+      .cookie("accessToken", accessToken, accessOptions)
+      .cookie("refreshToken", refreshToken, refreshOptions)
       .json(new ApiResponse(200, {
         user: user,
         accessToken: accessToken,
@@ -146,8 +160,8 @@ const login_user = asynchandler(async (req , res ,_)=>{
   }
   return res
     .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, accessOptions)
+    .cookie("refreshToken", refreshToken, refreshOptions)
     .json(new ApiResponse(200, {
       user: user,
       accessToken: accessToken,
@@ -188,14 +202,15 @@ if (!idToken_email || !idToken_name) throw new ApiError(400 , "google never sent
     created.isAdmin = true
     await created.save({validateBeforeSave:false})
   }
-    const option = cookieOptions
+    const accessOptions = accessCookieOptions
+    const refreshOptions = refreshCookieOptions
     const {accessToken,refreshToken} =await generateAccessRefershTokens(created._id)
 
     if (!accessToken || !refreshToken) throw new ApiError(400, "tokens not generated")
     return res
       .status(200)
-      .cookie("accessToken" , accessToken , option)
-      .cookie("refreshToken" , refreshToken,option)
+      .cookie("accessToken" , accessToken , accessOptions)
+      .cookie("refreshToken" , refreshToken, refreshOptions)
       .json(new ApiResponse(200,created , "logged in "))
 
 
@@ -203,14 +218,15 @@ if (!idToken_email || !idToken_name) throw new ApiError(400 , "google never sent
 
 
   }
-  const options = cookieOptions
+  const accessOptions = accessCookieOptions
+  const refreshOptions = refreshCookieOptions
   const {accessToken,refreshToken} = await generateAccessRefershTokens(user._id)
   // console.log("accessToken " , accessToken ,"refreshToken-->", refreshToken)
   if (!accessToken || !refreshToken) throw new ApiError(400, "tokens not generated")
   return res
     .status(200)
-    .cookie("accessToken" , accessToken , options)
-    .cookie("refreshToken" , refreshToken,options)
+    .cookie("accessToken" , accessToken , accessOptions)
+    .cookie("refreshToken" , refreshToken, refreshOptions)
     .json(new ApiResponse(200,user , "logged in "))
 
 
@@ -272,8 +288,8 @@ const user =await User.findByIdAndUpdate(req?.user?._id , {
   $unset: { refreshToken: 1 }
 } , {new:true}).select("-password")
   return res.status(200)
-    .clearCookie("accessToken", cookieOptions)
-    .clearCookie("refreshToken", cookieOptions)
+    .clearCookie("accessToken", cookieBaseOptions)
+    .clearCookie("refreshToken", cookieBaseOptions)
     .json(new ApiResponse(200 , user , "logged out successfully"))
 
 
@@ -306,13 +322,12 @@ const refreshAccessTokens = asynchandler(async (req,res)=>{
   if (token !== user.refreshToken) throw new ApiError(500, "maslaa")
   const { accessToken, refreshToken } = await generateAccessRefershTokens(req.user._id)
 
-  const options = {
-    ...cookieOptions,
-  }
+  const accessOptions = accessCookieOptions
+  const refreshOptions = refreshCookieOptions
   return res
     .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, accessOptions)
+    .cookie("refreshToken", refreshToken, refreshOptions)
     .json(new ApiResponse(200, {
       user: user,
       new_accessToken: accessToken,
@@ -388,8 +403,8 @@ const deleteUser = asynchandler(async (req,res)=>{
 
 
   res.status(200)
-    .clearCookie("accessToken", cookieOptions)
-    .clearCookie("refreshToken", cookieOptions)
+    .clearCookie("accessToken", cookieBaseOptions)
+    .clearCookie("refreshToken", cookieBaseOptions)
     .json(new  ApiResponse(200,{},"logged out and deleted"))
 
 })
