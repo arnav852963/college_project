@@ -72,6 +72,10 @@ const userModel = new Schema({
   userProfileLink:{
     type:String,
     trim:true
+  },
+  isHeSynchronized: {
+    type: Boolean,
+    default: false
   }
 
 

@@ -689,7 +689,8 @@ const getAuthorScholar = asynchandler(async (req , res)=>{
   const userUpdate = await User.findByIdAndUpdate(req.user._id , {
     $set:{
       userBio:author,
-      userStats:stats
+      userStats:stats,
+      isHeSynchronized: true
     }
   } , {new:true})
   if (!userUpdate) throw new ApiError(500 , "user bio not updated")
