@@ -37,5 +37,7 @@ jobs:
           application_name: 'prof-connect' # Change this to your EB App Name
           environment_name: 'Prof-connect-env' # Change this to your EB Env Name
           version_label: 'deploy-${{ github.sha }}'
-          region: 'ap-southeast-2'                         # Change to your AWS region (e.g., ap-south-1)
+          region: 'ap-southeast-2' # Change to your AWS region (e.g., ap-south-1)
           deployment_package: deploy.zip
+          wait_for_deployment: true
+          use_existing_version_if_available: true
