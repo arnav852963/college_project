@@ -59,6 +59,7 @@ const userStats = asynchandler(async (req,res)=>{
       notPublishedCount:1,
       userStats:1,
       userBio:1,
+      isHeSynchronized:1
     }
   }])
   if (details.length<=0) throw new ApiError(400 , "no details found")
