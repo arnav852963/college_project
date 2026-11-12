@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# SSL Certificate renewal hook for ProfConnect backend
 # 1. Install Certbot packages natively on Amazon Linux 2023
 sudo dnf install -y certbot python3-certbot-nginx
 
